@@ -135,6 +135,6 @@ public class CKeyField implements CWidget {
 
     public void setKey(InputUtil.Key k) { // useless comment to make a workflow run like what
         key = k;
-    }
+    } // test comment...
 }
 
