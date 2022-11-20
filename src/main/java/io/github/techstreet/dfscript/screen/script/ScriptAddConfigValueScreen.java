@@ -5,20 +5,19 @@ import io.github.techstreet.dfscript.screen.CScreen;
 import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
 import io.github.techstreet.dfscript.script.Script;
-import io.github.techstreet.dfscript.script.action.ScriptAction;
-import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
+import io.github.techstreet.dfscript.script.action.ScriptRunnablePart;
 import io.github.techstreet.dfscript.script.argument.ScriptConfigArgument;
 import io.github.techstreet.dfscript.script.options.ScriptNamedOption;
 
 public class ScriptAddConfigValueScreen extends CScreen {
     private final Script script;
-    private final ScriptAction action;
+    private final ScriptRunnablePart action;
     private final int insertIndex;
 
     private static int WIDTH = 200;
     private static int HEIGHT = 94;
 
-    public ScriptAddConfigValueScreen(ScriptAction action, Script script, int insertIndex) {
+    public ScriptAddConfigValueScreen(ScriptRunnablePart action, Script script, int insertIndex) {
         super(WIDTH, HEIGHT);
         this.script = script;
         this.action = action;

@@ -1,5 +1,7 @@
 package io.github.techstreet.dfscript.script.execution;
 
+import io.github.techstreet.dfscript.script.function.ScriptFunction;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -11,6 +13,8 @@ public class ScriptPosStackElement {
     private Consumer<ScriptActionContext> condition = null;
 
     private ScriptActionContext defaultCtx = null;
+
+    private ScriptFunction function = null;
 
     private Map<String, Object> scopeVariables = new HashMap<>();
 
@@ -45,6 +49,7 @@ public class ScriptPosStackElement {
         this.preTask = variables.preTask;
         this.condition = variables.condition;
         this.defaultCtx = variables.ctx;
+        this.function = variables.function;
     }
     public ScriptPosStackElement setPos(int pos) {
         this.pos = pos;
@@ -86,5 +91,9 @@ public class ScriptPosStackElement {
 
     public boolean hasVariable(String name) {
         return scopeVariables.containsKey(name);
+    }
+
+    public boolean isFunction() {
+        return function != null;
     }
 }

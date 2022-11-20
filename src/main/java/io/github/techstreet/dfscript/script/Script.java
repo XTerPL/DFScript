@@ -12,8 +12,11 @@ import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.event.system.Event;
 import io.github.techstreet.dfscript.script.action.ScriptAction;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
+import io.github.techstreet.dfscript.script.action.ScriptRunnablePart;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.argument.ScriptUnknownArgument;
+import io.github.techstreet.dfscript.script.function.ScriptCallFunction;
+import io.github.techstreet.dfscript.script.function.ScriptFunction;
 import io.github.techstreet.dfscript.script.options.ScriptNamedOption;
 import io.github.techstreet.dfscript.script.event.ScriptEvent;
 import io.github.techstreet.dfscript.script.execution.ScriptContext;
@@ -27,6 +30,7 @@ import io.github.techstreet.dfscript.util.chat.ChatUtil;
 import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -94,23 +98,30 @@ public class Script {
 
         while (task.stack().peek() < parts.size()) { // check if there is still code to be run
             ScriptPart part = parts.get(task.stack().peek()); // get the script part (action or event who cares)
-            if (part instanceof ScriptEvent) { // well maybe we do care?
-                return;
-            } else if (part instanceof ScriptAction sa) { // only run ScriptActions (possibly being able to implement comments?)
+            if (part instanceof ScriptEvent || part instanceof ScriptFunction) { // well maybe we do care?
+                if(task.stack().peekElement().isFunction()) {
+                    if(endScope(task)) {
+                        return;
+                    }
+                }
+                else {
+                    return;
+                }
+            } else if (part instanceof ScriptRunnablePart srp) { // only run ScriptActions (possibly being able to implement comments?)
                 Consumer<ScriptScopeVariables> inner = null;
-                if (sa.getType().hasChildren()) {
+                if (srp.hasChildren()) {
                     int posCopy = task.stack().peek(); // get the current position for later
                     inner = (scriptScopeVariables) -> task.schedule(posCopy, scriptScopeVariables); // schedule the configurable code
                     int depth = 0;
                     while (task.stack().peek() < parts.size()) { // loop through all the script parts
                         ScriptPart nextPart = parts.get(task.stack().peek());
-                        if (nextPart instanceof ScriptEvent) { // so we can see whether it's an event or an action
+                        if (nextPart instanceof ScriptEvent || nextPart instanceof ScriptFunction) { // so we can see whether it's an event or an action
                             task.stack().clear();
                             return;
-                        } else if (nextPart instanceof ScriptAction sa2) {
-                            if (sa2.getType().hasChildren()) { // we increase the depth if it has children
+                        } else if (nextPart instanceof ScriptRunnablePart srp2) {
+                            if (srp2.hasChildren()) { // we increase the depth if it has children
                                 depth++;
-                            } else if (sa2.getType() == ScriptActionType.CLOSE_BRACKET) { // or we decrease it if we get to the end of the inner code
+                            } else if (srp2 instanceof ScriptAction sa2 && sa2.getType() == ScriptActionType.CLOSE_BRACKET) { // or we decrease it if we get to the end of the inner code
                                 depth--;
                                 if (depth == 0) { // stop when we reach the same depth as the original script action
                                     break;
@@ -128,24 +139,28 @@ public class Script {
                         }
                     }
                 }
-                if(sa.getGroup() == ScriptGroup.CONDITION) { // if it's a condition
-                    if(sa.getType() != ScriptActionType.ELSE) { // and not an else
+                if(srp.getGroup() == ScriptGroup.CONDITION) { // if it's a condition
+                    if(srp instanceof ScriptAction sa && sa.getType() != ScriptActionType.ELSE) { // and not an else
                         task.stack().peekElement().setVariable("lastIfResult", false); // set the last result to false
                     }
                 }
                 else {
                     task.stack().peekElement().setVariable("lastIfResult", true); //does this detect close brackets or no (no it doesn't, good)
                 }
-                sa.invoke(task.event(), context, inner,task, this); // execute the script action
+                srp.invoke(task.event(), context, inner,task, this); // execute the script action
                 if (!task.isRunning()) { // is the script still running?
                     return;
                 }
-                if(sa.getGroup() == ScriptGroup.CONDITION) { // if it's a condition
+                if(srp.getGroup() == ScriptGroup.CONDITION) { // if it's a condition
                     if(task.stack().peekElement().getVariable("lastIfResult").equals(true)) { // and it's last if result worked
                         inner.accept(null);
                     }
                 }
-                if (sa.getType() == ScriptActionType.CLOSE_BRACKET) { // is this the end of the scope?
+                if (srp instanceof ScriptAction sa && sa.getType() == ScriptActionType.CLOSE_BRACKET) { // is this the end of the scope?
+                    if(task.stack().peekElement().isFunction()) {
+                        return;
+                    }
+
                     if(endScope(task))
                     {
                         return;
@@ -318,6 +333,16 @@ public class Script {
         return null;
     }
 
+    public HashMap<String, ScriptFunction> getFunctions() {
+        HashMap<String, ScriptFunction> funcs = new HashMap<>();
+        for(ScriptPart part : getParts()) {
+            if(part instanceof ScriptFunction f && !Objects.equals(f.getFunctionName(), "")) {
+                funcs.put(f.getFunctionName(), f);
+            }
+        }
+        return funcs;
+    }
+
     private void updateScriptReferences() {
         for(ScriptPart part : getParts()) {
             if(part instanceof ScriptAction a) {
@@ -328,15 +353,43 @@ public class Script {
 
     public void replaceOption(String oldOption, String newOption) {
         for(ScriptPart part : getParts()) {
-            if(part instanceof ScriptAction a) {
+            if(part instanceof ScriptRunnablePart a) {
                 a.updateConfigArguments(oldOption, newOption);
+            }
+        }
+    }
+
+    public void replaceFunction(String oldFunction, String newFunction) {
+        if(Objects.equals(oldFunction, "")) {
+            return;
+        }
+
+        for(ScriptPart part : getParts()) {
+            if(part instanceof ScriptCallFunction cf) {
+                if(Objects.equals(cf.getFunctionName(), oldFunction)) {
+                    cf.setFunctionName(newFunction);
+                }
+            }
+        }
+    }
+
+    public void removeFunction(String function) {
+        if(Objects.equals(function, "")) {
+            return;
+        }
+
+        for(ScriptPart part : getParts()) {
+            if(part instanceof ScriptCallFunction cf) {
+                if(Objects.equals(cf.getFunctionName(), function)) {
+                    cf.setFunctionName("");
+                }
             }
         }
     }
 
     public void removeOption(String option) {
         for(ScriptPart part : getParts()) {
-            if(part instanceof ScriptAction a) {
+            if(part instanceof ScriptRunnablePart a) {
                 a.removeConfigArguments(option);
             }
         }

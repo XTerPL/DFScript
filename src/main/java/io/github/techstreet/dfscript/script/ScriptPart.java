@@ -10,6 +10,9 @@ import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.event.ScriptEvent;
 import io.github.techstreet.dfscript.script.event.ScriptEventType;
+import io.github.techstreet.dfscript.script.function.ScriptCallFunction;
+import io.github.techstreet.dfscript.script.function.ScriptFunction;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +43,18 @@ public interface ScriptPart {
                 case "comment" -> {
                     String comment = obj.get("comment").getAsString();
                     return new ScriptComment(comment);
+                }
+                case "function" -> {
+                    String name = obj.get("function").getAsString();
+                    return new ScriptFunction(name);
+                }
+                case "callFunction" -> {
+                    String name = obj.get("function").getAsString();
+                    List<ScriptArgument> args = new ArrayList<>();
+                    for (JsonElement arg : obj.get("arguments").getAsJsonArray()) {
+                        args.add(context.deserialize(arg, ScriptArgument.class));
+                    }
+                    return new ScriptCallFunction(name, args);
                 }
                 default -> throw new JsonParseException("Unknown script part type: " + type);
             }

@@ -7,7 +7,7 @@ import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.screen.widget.CText;
 import io.github.techstreet.dfscript.screen.widget.CWidget;
 import io.github.techstreet.dfscript.script.Script;
-import io.github.techstreet.dfscript.script.action.ScriptAction;
+import io.github.techstreet.dfscript.script.action.ScriptRunnablePart;
 import io.github.techstreet.dfscript.script.argument.*;
 
 import java.awt.Rectangle;
@@ -28,7 +28,7 @@ public class ScriptEditActionScreen extends CScreen {
     private final Script script;
     private final List<CWidget> contextMenu = new ArrayList<>();
 
-    public ScriptEditActionScreen(ScriptAction action, Script script) {
+    public ScriptEditActionScreen(ScriptRunnablePart action, Script script) {
         super(90, 100);
         this.script = script;
 

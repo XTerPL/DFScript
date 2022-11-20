@@ -19,8 +19,8 @@ public class ScriptAddActionScreen extends CScreen {
     private final int insertIndex;
 
     public ScriptAddActionScreen(Script script, int insertIndex, ScriptActionCategory category) {
-        super(size(category), size(category));
-        int size = size(category);
+        super(size(category, script), size(category, script));
+        int size = size(category, script);
         this.script = script;
         this.insertIndex = insertIndex;
 
@@ -46,7 +46,7 @@ public class ScriptAddActionScreen extends CScreen {
 
         if (category != null)
         {
-            for(ScriptActionCategoryExtra extra : category.getExtras()) {
+            for(ScriptActionCategoryExtra extra : category.getExtras(script)) {
                 CItem item = new CItem(x, y, extra.getIcon());
                 item.setClickListener((btn) -> {
                     script.getParts().add(insertIndex, extra.getPart());
@@ -83,12 +83,12 @@ public class ScriptAddActionScreen extends CScreen {
         }
     }
 
-    private static int size(ScriptActionCategory category) {
+    private static int size(ScriptActionCategory category, Script script) {
         int amount = 0;
         if (category == null) {
             amount = ScriptEventType.values().length;
         } else {
-            amount += category.getExtras().size();
+            amount += category.getExtras(script).size();
             for (ScriptActionType type : ScriptActionType.values()) {
                 if (type.getCategory() == category) {
                     amount++;

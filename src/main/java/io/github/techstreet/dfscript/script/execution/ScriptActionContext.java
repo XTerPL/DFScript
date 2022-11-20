@@ -2,11 +2,14 @@ package io.github.techstreet.dfscript.script.execution;
 
 import io.github.techstreet.dfscript.event.system.Event;
 import io.github.techstreet.dfscript.script.Script;
+import io.github.techstreet.dfscript.script.ScriptPart;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.argument.ScriptVariableArgument;
+import io.github.techstreet.dfscript.script.function.ScriptFunction;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -72,5 +75,25 @@ public record ScriptActionContext(ScriptContext context, List<ScriptArgument> ar
 
     public boolean hasScopeVariable(String name) {
         return task().stack().peekElement(0).hasVariable(name);
+    }
+
+    public void scheduleFunction(String functionName, Runnable preTask, Consumer<ScriptActionContext> condition) {
+        if(Objects.equals(functionName, "")) return;
+
+        HashMap<String, ScriptFunction> funcs = script.getFunctions();
+
+        if(!funcs.containsKey(functionName)) return;
+
+        int pos = 0;
+        for (ScriptPart p : script.getParts()) {
+            if(p instanceof ScriptFunction f) {
+                if(Objects.equals(f.getFunctionName(), functionName)) {
+                    ScriptScopeVariables scv = new ScriptScopeVariables(preTask, condition, this);
+                    scv.function(funcs.get(functionName));
+                    task.schedule(pos, scv);
+                }
+            }
+            pos++;
+        }
     }
 }

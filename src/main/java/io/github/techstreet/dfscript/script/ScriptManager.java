@@ -12,6 +12,8 @@ import io.github.techstreet.dfscript.script.action.ScriptAction;
 import io.github.techstreet.dfscript.script.argument.*;
 import io.github.techstreet.dfscript.script.event.ScriptEvent;
 import io.github.techstreet.dfscript.script.event.ScriptStartUpEvent;
+import io.github.techstreet.dfscript.script.function.ScriptCallFunction;
+import io.github.techstreet.dfscript.script.function.ScriptFunction;
 import io.github.techstreet.dfscript.script.options.ScriptNamedOption;
 import io.github.techstreet.dfscript.util.FileUtil;
 import io.github.techstreet.dfscript.util.chat.ChatType;
@@ -47,6 +49,8 @@ public class ScriptManager implements Loadable {
         .registerTypeAdapter(ScriptAction.class, new ScriptAction.Serializer())
         .registerTypeAdapter(ScriptEvent.class, new ScriptEvent.Serializer())
         .registerTypeAdapter(ScriptComment.class, new ScriptComment.Serializer())
+        .registerTypeAdapter(ScriptFunction.class, new ScriptFunction.Serializer())
+        .registerTypeAdapter(ScriptCallFunction.class, new ScriptCallFunction.Serializer())
         .create();
 
     public ScriptManager() {

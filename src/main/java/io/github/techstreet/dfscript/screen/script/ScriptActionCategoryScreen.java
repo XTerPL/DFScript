@@ -15,7 +15,7 @@ public class ScriptActionCategoryScreen extends CScreen {
     private static final int size;
 
     static {
-        size = (int) (Math.ceil(Math.sqrt(ScriptActionCategory.values().length + 1)) * 10)+4;
+        size = (int) (Math.ceil(Math.sqrt(ScriptActionCategory.values().length)) * 10)+4;
     }
 
     private final Script script;
@@ -24,18 +24,18 @@ public class ScriptActionCategoryScreen extends CScreen {
         super(size, size);
         this.script = script;
 
-        ItemStack eventsItem = new ItemStack(Items.DIAMOND);
-        eventsItem.setCustomName(Text.literal("Events").fillStyle(Style.EMPTY.withItalic(false)));
+        //ItemStack eventsItem = new ItemStack(Items.DIAMOND);
+        //eventsItem.setCustomName(Text.literal("Events").fillStyle(Style.EMPTY.withItalic(false)));
 
         int x = 3;
         int y = 3;
 
-        CItem item = new CItem(x, y, eventsItem);
-        widgets.add(item);
+        //CItem item = new CItem(x, y, eventsItem);
+        //widgets.add(item);
 
-        item.setClickListener(btn -> DFScript.MC.setScreen(new ScriptAddActionScreen(script, insertIndex, null)));
+        //item.setClickListener(btn -> DFScript.MC.setScreen(new ScriptAddActionScreen(script, insertIndex, null)));
 
-        x += 10;
+        //x += 10;
 
         for (ScriptActionCategory category : ScriptActionCategory.values()) {
             CItem actionItem = new CItem(x, y, category.getIcon());

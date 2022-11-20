@@ -9,10 +9,14 @@ import io.github.techstreet.dfscript.script.ScriptManager;
 import io.github.techstreet.dfscript.script.ScriptPart;
 import io.github.techstreet.dfscript.script.action.ScriptAction;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
+import io.github.techstreet.dfscript.script.action.ScriptRunnablePart;
 import io.github.techstreet.dfscript.script.event.ScriptEvent;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.github.techstreet.dfscript.script.function.ScriptCallFunction;
+import io.github.techstreet.dfscript.script.function.ScriptFunction;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.math.MatrixStack;
@@ -108,13 +112,13 @@ public class ScriptEditScreen extends CScreen {
                         return false;
                     }
                 });
-            } else if (part instanceof ScriptAction sa) {
-                if (sa.getType() == ScriptActionType.CLOSE_BRACKET) {
+            } else if (part instanceof ScriptRunnablePart srp) {
+                if (part instanceof ScriptAction sa && sa.getType() == ScriptActionType.CLOSE_BRACKET) {
                     indent -= 5;
                 }
 
-                panel.add(new CItem(5 + indent, y, sa.getType().getIcon()));
-                panel.add(new CText(15 + indent, y + 2, Text.literal(sa.getType().getName())));
+                panel.add(new CItem(5 + indent, y, srp.getIcon()));
+                panel.add(new CText(15 + indent, y + 2, Text.literal(srp.getName())));
 
                 createIndent(indent, y);
 
@@ -127,13 +131,13 @@ public class ScriptEditScreen extends CScreen {
                         if (b.contains(mouseX, mouseY)) {
                             int color = 0x33000000;
 
-                            if (sa.getType().isDeprecated()) {
+                            if (srp instanceof ScriptAction sa && sa.getType().isDeprecated()) {
                                 color = 0x80FF0000;
                             }
 
                             DrawableHelper.fill(stack, b.x, b.y, b.x + b.width, b.y + b.height, color);
                         } else {
-                            if (sa.getType().isDeprecated()) {
+                            if (srp instanceof ScriptAction sa && sa.getType().isDeprecated()) {
                                 DrawableHelper.fill(stack, b.x, b.y, b.x + b.width, b.y + b.height, 0x33FF0000);
                             }
                         }
@@ -145,9 +149,9 @@ public class ScriptEditScreen extends CScreen {
                             DFScript.MC.getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.UI_BUTTON_CLICK, 1f, 1f));
 
                             if (button == 0) {
-                                if (sa.getType() != ScriptActionType.CLOSE_BRACKET) {
+                                if (srp instanceof ScriptCallFunction || (srp instanceof ScriptAction sa && sa.getType() != ScriptActionType.CLOSE_BRACKET)) {
                                     scroll = panel.getScroll();
-                                    DFScript.MC.setScreen(new ScriptEditActionScreen(sa, script));
+                                    DFScript.MC.setScreen(new ScriptEditActionScreen(srp, script));
                                 }
                             } else {
                                 CButton insertBefore = new CButton((int) x, (int) y, 40, 8, "Insert Before", () -> {
@@ -176,7 +180,7 @@ public class ScriptEditScreen extends CScreen {
                     }
                 });
 
-                if (sa.getType().hasChildren()) {
+                if (srp.hasChildren()) {
                     indent += 5;
                 }
             } else if (part instanceof ScriptComment sc) {
@@ -236,6 +240,61 @@ public class ScriptEditScreen extends CScreen {
                 });
 
                 createIndent(indent, y);
+            }
+            else if (part instanceof ScriptFunction sf) {
+                panel.add(new CItem(5, y, new ItemStack(Items.LAPIS_BLOCK).setCustomName(Text.literal("Function Definition").setStyle(Style.EMPTY.withItalic(false)))));
+                panel.add(new CText(15, y + 2, Text.literal(sf.getFunctionName())));
+                indent = 5;
+
+                int currentIndex = index;
+                panel.add(new CButton(5, y-1, 115, 10, "",() -> {}) {
+                    @Override
+                    public void render(MatrixStack stack, int mouseX, int mouseY, float tickDelta) {
+                        Rectangle b = getBounds();
+
+                        if (b.contains(mouseX, mouseY)) {
+                            int color = 0x33000000;
+
+                            DrawableHelper.fill(stack, b.x, b.y, b.x + b.width, b.y + b.height, color);
+                        }
+                    }
+
+                    @Override
+                    public boolean mouseClicked(double x, double y, int button) {
+                        if (getBounds().contains(x, y)) {
+                            DFScript.MC.getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.UI_BUTTON_CLICK, 1f,1f));
+
+                            if (button != 0) {
+                                CButton insertBefore = new CButton((int) x, (int) y, 40, 8, "Insert Before", () -> {
+                                    DFScript.MC.setScreen(new ScriptActionCategoryScreen(script, currentIndex));
+                                });
+                                CButton insertAfter = new CButton((int) x, (int) y+8, 40, 8, "Insert After", () -> {
+                                    DFScript.MC.setScreen(new ScriptActionCategoryScreen(script, currentIndex + 1));
+                                });
+                                CButton delete = new CButton((int) x, (int) y+16, 40, 8, "Delete", () -> {
+                                    script.getParts().remove(currentIndex);
+                                    scroll = panel.getScroll();
+                                    DFScript.MC.setScreen(new ScriptEditScreen(script));
+                                });
+                                DFScript.MC.send(() -> {
+                                    panel.add(insertBefore);
+                                    panel.add(insertAfter);
+                                    panel.add(delete);
+                                    contextMenu.add(insertBefore);
+                                    contextMenu.add(insertAfter);
+                                    contextMenu.add(delete);
+                                });
+                            }
+                            else
+                            {
+                                DFScript.MC.setScreen(new ScriptEditFunctionScreen(script, sf));
+                            }
+
+                            return true;
+                        }
+                        return false;
+                    }
+                });
             } else {
                 throw new IllegalArgumentException("Unknown script part type");
             }

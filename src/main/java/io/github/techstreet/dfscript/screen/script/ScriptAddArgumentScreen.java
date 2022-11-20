@@ -6,6 +6,7 @@ import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.screen.widget.CTextField;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.action.ScriptAction;
+import io.github.techstreet.dfscript.script.action.ScriptRunnablePart;
 import io.github.techstreet.dfscript.script.argument.ScriptNumberArgument;
 import io.github.techstreet.dfscript.script.argument.ScriptTextArgument;
 import io.github.techstreet.dfscript.script.argument.ScriptVariableArgument;
@@ -17,9 +18,9 @@ import net.minecraft.text.Text;
 public class ScriptAddArgumentScreen extends CScreen {
 
     private final Script script;
-    private final ScriptAction action;
+    private final ScriptRunnablePart action;
 
-    public ScriptAddArgumentScreen(Script script, ScriptAction action, int index) {
+    public ScriptAddArgumentScreen(Script script, ScriptRunnablePart action, int index) {
         super(100, 50);
         this.script = script;
         this.action = action;
