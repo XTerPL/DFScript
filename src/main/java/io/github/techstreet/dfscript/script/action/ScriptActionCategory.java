@@ -40,7 +40,7 @@ public enum ScriptActionCategory {
 
             ItemStack icon = new ItemStack(Items.LAPIS_LAZULI);
             icon.setCustomName(Text.literal(func.getFunctionName()).setStyle(Style.EMPTY.withItalic(false)));
-            extras.add(new ScriptActionCategoryExtra(icon, (Void) -> new ScriptCallFunction(funcName, new ArrayList<>())));
+            extras.add(new ScriptActionCategoryExtra(icon, (Void) -> new ScriptCallFunction(funcName, new ArrayList<>(), script)));
         }
 
         return extras;

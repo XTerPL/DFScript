@@ -347,6 +347,8 @@ public class Script {
         for(ScriptPart part : getParts()) {
             if(part instanceof ScriptAction a) {
                 a.updateScriptReferences(this);
+            } else if (part instanceof ScriptCallFunction f) {
+                f.setScript(this);
             }
         }
     }

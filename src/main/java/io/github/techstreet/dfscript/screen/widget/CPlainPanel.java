@@ -38,6 +38,12 @@ public class CPlainPanel implements CWidget {
             (int) (end.getY() - begin.getY())*guiScale
         );
 
+        if(mouseX < x) mouseX = CWidget.MOUSE_DISABLE;
+        if(mouseX > x+width) mouseX = CWidget.MOUSE_DISABLE;
+
+        if(mouseY < y) mouseY = CWidget.MOUSE_DISABLE;
+        if(mouseY > y+height) mouseY = CWidget.MOUSE_DISABLE;
+
         for (CWidget child : children) {
             child.render(stack, mouseX, mouseY, tickDelta);
         }
@@ -48,6 +54,10 @@ public class CPlainPanel implements CWidget {
 
     @Override
     public boolean mouseClicked(double x, double y, int button) {
+        if(!getBounds().contains(x, y)) {
+            return false;
+        }
+
         for (int i = children.size() - 1; i >= 0; i--) {
             if (children.get(i).mouseClicked(x, y, button)) {
                 return true;
@@ -72,6 +82,10 @@ public class CPlainPanel implements CWidget {
 
     @Override
     public void mouseScrolled(double mouseX, double mouseY, double amount) {
+        if(!getBounds().contains(mouseX, mouseY)) {
+            return;
+        }
+
         for (CWidget child : children) {
             child.mouseScrolled(mouseX, mouseY, amount);
         }
@@ -93,6 +107,12 @@ public class CPlainPanel implements CWidget {
 
     @Override
     public void renderOverlay(MatrixStack stack, int mouseX, int mouseY, float tickDelta) {
+        if(mouseX < x) mouseX = CWidget.MOUSE_DISABLE;
+        if(mouseX > x+width) mouseX = CWidget.MOUSE_DISABLE;
+
+        if(mouseY < y) mouseY = CWidget.MOUSE_DISABLE;
+        if(mouseY > y+height) mouseY = CWidget.MOUSE_DISABLE;
+
         stack.push();
         stack.translate(x, y, 0);
         for (CWidget child : children) {

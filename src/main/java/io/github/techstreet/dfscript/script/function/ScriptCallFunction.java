@@ -16,8 +16,13 @@ import io.github.techstreet.dfscript.script.execution.ScriptScopeVariables;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -26,10 +31,12 @@ import java.util.function.Consumer;
 
 public class ScriptCallFunction extends ScriptRunnablePart {
     String function;
+    transient Script script;
 
-    public ScriptCallFunction(String function, List<ScriptArgument> arguments) {
+    public ScriptCallFunction(String function, List<ScriptArgument> arguments, Script script) {
         super(arguments);
         this.function = function;
+        this.script = script;
     }
 
     public String getFunctionName() {
@@ -54,9 +61,39 @@ public class ScriptCallFunction extends ScriptRunnablePart {
 
     @Override
     public ItemStack getIcon() {
-        ItemStack icon = new ItemStack(Items.LAPIS_LAZULI);
-        icon.setCustomName(Text.literal(getFunctionName()).setStyle(Style.EMPTY.withItalic(false)));
-        return icon;
+        ScriptFunction func = getFunction();
+
+        if(func == null) {
+            ItemStack icon = new ItemStack(Items.RED_DYE);
+            icon.setCustomName(Text.literal(getFunctionName()).setStyle(Style.EMPTY.withItalic(false)));
+            NbtList lore = new NbtList();
+
+            lore.add(NbtString.of(Text.Serializer.toJson(Text.literal("Missing Function Definition")
+                    .fillStyle(Style.EMPTY
+                            .withColor(Formatting.RED)
+                            .withItalic(false)))));
+
+            icon.getSubNbt("display")
+                    .put("Lore", lore);
+
+            return icon;
+        }
+
+        return func.getFullIcon();
+    }
+
+    public ScriptFunction getFunction() {
+        if(getScript().getFunctions().containsKey(function))
+            return getScript().getFunctions().get(function);
+        return null;
+    }
+
+    public Script getScript() {
+        return script;
+    }
+
+    public void setScript(Script script) {
+        this.script = script;
     }
 
     @Override

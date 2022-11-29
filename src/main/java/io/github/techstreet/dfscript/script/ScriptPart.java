@@ -46,7 +46,8 @@ public interface ScriptPart {
                 }
                 case "function" -> {
                     String name = obj.get("function").getAsString();
-                    return new ScriptFunction(name);
+                    String icon = obj.has("icon") ? obj.get("icon").getAsString() : "lapis_lazuli";
+                    return new ScriptFunction(name, icon);
                 }
                 case "callFunction" -> {
                     String name = obj.get("function").getAsString();
@@ -54,7 +55,7 @@ public interface ScriptPart {
                     for (JsonElement arg : obj.get("arguments").getAsJsonArray()) {
                         args.add(context.deserialize(arg, ScriptArgument.class));
                     }
-                    return new ScriptCallFunction(name, args);
+                    return new ScriptCallFunction(name, args, null);
                 }
                 default -> throw new JsonParseException("Unknown script part type: " + type);
             }

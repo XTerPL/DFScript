@@ -4,7 +4,7 @@ import java.awt.Rectangle;
 import net.minecraft.client.util.math.MatrixStack;
 
 public interface CWidget {
-
+    int MOUSE_DISABLE = -100000000;
     void render(MatrixStack stack, int mouseX, int mouseY, float tickDelta);
 
     default boolean mouseClicked(double x, double y, int button) {

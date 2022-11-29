@@ -26,6 +26,12 @@ public class CScrollPanel implements CWidget {
         stack.push();
         stack.translate(x, y, 0);
 
+        if(mouseX < x) mouseX = CWidget.MOUSE_DISABLE;
+        if(mouseX > x+width) mouseX = CWidget.MOUSE_DISABLE;
+
+        if(mouseY < y) mouseY = CWidget.MOUSE_DISABLE;
+        if(mouseY > y+height) mouseY = CWidget.MOUSE_DISABLE;
+
         mouseX -= x;
         mouseY -= y;
 
@@ -55,6 +61,10 @@ public class CScrollPanel implements CWidget {
 
     @Override
     public boolean mouseClicked(double x, double y, int button) {
+        if(!getBounds().contains(x, y)) {
+            return false;
+        }
+
         y -= scroll;
         x -= this.x;
         y -= this.y;
@@ -82,6 +92,10 @@ public class CScrollPanel implements CWidget {
 
     @Override
     public void mouseScrolled(double mouseX, double mouseY, double amount) {
+        if(!getBounds().contains(mouseX, mouseY)) {
+            return;
+        }
+
         mouseX -= x;
         mouseY -= y;
         for (CWidget child : children) {
@@ -115,6 +129,12 @@ public class CScrollPanel implements CWidget {
 
     @Override
     public void renderOverlay(MatrixStack stack, int mouseX, int mouseY, float tickDelta) {
+        if(mouseX < x) mouseX = CWidget.MOUSE_DISABLE;
+        if(mouseX > x+width) mouseX = CWidget.MOUSE_DISABLE;
+
+        if(mouseY < y) mouseY = CWidget.MOUSE_DISABLE;
+        if(mouseY > y+height) mouseY = CWidget.MOUSE_DISABLE;
+
         mouseY -= scroll;
 
         mouseX -= x;
