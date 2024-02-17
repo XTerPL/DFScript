@@ -7,8 +7,7 @@ import io.github.techstreet.dfscript.screen.script.ScriptEditPartScreen;
 import io.github.techstreet.dfscript.screen.script.ScriptEditScreen;
 import io.github.techstreet.dfscript.screen.script.ScriptPartCategoryScreen;
 import io.github.techstreet.dfscript.screen.widget.CButton;
-import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
-import io.github.techstreet.dfscript.screen.widget.CText;
+import io.github.techstreet.dfscript.screen.widget.CWidgetContainer;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
 import io.github.techstreet.dfscript.script.action.ScriptFunctionCall;
@@ -17,23 +16,21 @@ import io.github.techstreet.dfscript.script.conditions.ScriptBuiltinCondition;
 import io.github.techstreet.dfscript.script.conditions.ScriptConditionType;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
-import io.github.techstreet.dfscript.script.execution.ScriptPosStackElement;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
+import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
 import io.github.techstreet.dfscript.script.repetitions.ScriptBuiltinRepetition;
 import io.github.techstreet.dfscript.script.repetitions.ScriptRepetitionType;
 import io.github.techstreet.dfscript.util.RenderUtil;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
 
 import java.awt.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ScriptSnippet extends ArrayList<ScriptPart> {
     boolean hidden = false;
@@ -46,9 +43,9 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
         task.stack().push(this, parent, context);
     }
 
-    public int create(CScrollPanel panel, int y, int indent, Script script, ScriptHeader header) {
+    public void create(CWidgetContainer panel, int x, int y, Script script, ScriptHeader header) {
         ScriptSnippet thisSnippet = this;
-        panel.add(new CButton(3, y, 2, 8, "", () -> {
+        panel.add(new CButton(x-3, y, 2, 8, "", () -> {
             thisSnippet.hidden = !thisSnippet.hidden;
             if(DFScript.MC.currentScreen instanceof ScriptEditScreen e) {
                 e.reload();
@@ -56,7 +53,6 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
         }) {
             @Override
             public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
-                MatrixStack stack = context.getMatrices();
                 Rectangle b = getBounds();
 
                 int color = 0xFF323232;
@@ -66,22 +62,21 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
                 }
 
                 if(thisSnippet.hidden) {
-                    RenderUtil.renderLine(stack, b.x, b.y, b.x+b.width, b.y+(b.height/2f), color, 0.5f);
-                    RenderUtil.renderLine(stack, b.x, b.y+b.height, b.x+b.width, b.y+(b.height/2f), color, 0.5f);
+                    RenderUtil.renderLine(context, b.x, b.y, b.x+b.width, b.y+(b.height/2f), color, 0.5f);
+                    RenderUtil.renderLine(context, b.x, b.y+b.height, b.x+b.width, b.y+(b.height/2f), color, 0.5f);
                 }
                 else {
-                    RenderUtil.renderLine(stack, b.x, b.y, b.x+(b.width/2f), b.y+b.height, color, 0.5f);
-                    RenderUtil.renderLine(stack, b.x+b.width, b.y, b.x+(b.width/2f), b.y+b.height, color, 0.5f);
+                    RenderUtil.renderLine(context, b.x, b.y, b.x+(b.width/2f), b.y+b.height, color, 0.5f);
+                    RenderUtil.renderLine(context, b.x+b.width, b.y, b.x+(b.width/2f), b.y+b.height, color, 0.5f);
                 }
             }
         });
 
         if(hidden) {
-            ScriptPartRender.createIndent(panel, indent, y, 8);
-
-            panel.add(new CText(15 + indent * 5, y + 2, Text.literal("...")));
-
-            return y+10;
+            ScriptPartRender render = new ScriptPartRender();
+            render.addElement(new ScriptPartRenderIconElement("...", ItemStack.EMPTY));
+            render.create(panel, x, y, script, header);
+            return;
         }
 
         int index = 0;
@@ -89,7 +84,7 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
         for(ScriptPart part : this) {
             ScriptPartRender render = new ScriptPartRender();
             part.create(render, script);
-            y = render.create(panel, y, indent, script, header);
+            y = render.create(panel, x, y, script, header);
             int currentIndex = index;
             for (var buttonPos : render.getButtonPositions()) {
                 panel.add(new CButton(5, buttonPos.getY() - 1, 115, buttonPos.height(), "", () -> {
@@ -117,7 +112,7 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
 
                         if(drawFill) {
                             for(var renderButtonPos : render.getButtonPositions()) {
-                                context.fill(b.x, renderButtonPos.y()-1, b.x + b.width, renderButtonPos.y()-1 + renderButtonPos.height(), color);
+                                context.fill(renderButtonPos.getX(), renderButtonPos.getY(), renderButtonPos.getX() + renderButtonPos.getWidth(), renderButtonPos.getY() + renderButtonPos.getHeight(), color);
                             }
                         }
                     }
@@ -160,14 +155,38 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
             index++;
         }
 
-        ScriptPartRender.createIndent(panel, indent, y, 8);
+        /*ScriptPartRender.createIndent(panel, indent, y, 8);
         CButton add = new CButton((ScriptEditScreen.width-30)/2, y, 30, 8, "Add Part", () -> {
             DFScript.MC.setScreen(new ScriptPartCategoryScreen(script, thisSnippet, thisSnippet.size()));
         });
 
-        panel.add(add);
+        panel.add(add);*/
+    }
 
-        return y+10;
+    private List<ScriptPartRender> getRenders(Script script) {
+        if(hidden) {
+            ScriptPartRender render = new ScriptPartRender();
+            render.addElement(new ScriptPartRenderIconElement("...", ItemStack.EMPTY));
+            return List.of(render);
+        }
+
+        List<ScriptPartRender> renders = new ArrayList<>();
+
+        for(ScriptPart part : this) {
+            ScriptPartRender render = new ScriptPartRender();
+            part.create(render, script);
+            renders.add(render);
+        }
+
+        return renders;
+    }
+
+    public int getHeight(Script script) {
+        int height = 0;
+        for (ScriptPartRender render : getRenders(script)) {
+            height += render.getHeight(script);
+        }
+        return height;
     }
 
     public void replaceAction(ScriptActionType oldAction, ScriptActionType newAction) {

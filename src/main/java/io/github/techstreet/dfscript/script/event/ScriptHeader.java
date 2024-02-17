@@ -6,6 +6,8 @@ import io.github.techstreet.dfscript.script.*;
 import io.github.techstreet.dfscript.script.action.*;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
+import io.github.techstreet.dfscript.script.render.ScriptPartRender;
+import io.github.techstreet.dfscript.script.render.ScriptPartRenderSnippetElement;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
@@ -15,7 +17,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class ScriptHeader implements ScriptRunnable, ScriptScopeParent {
-
+    int x = 0;
+    int y = 0;
     ScriptContainer container;
     ScriptHeader()
     {
@@ -28,9 +31,8 @@ public abstract class ScriptHeader implements ScriptRunnable, ScriptScopeParent 
         container.runSnippet(task, 0, this);
     }
 
-    public int create(CScrollPanel panel, int y, int index, Script script) {
-        y += 10;
-        return container.createSnippet(0, panel, y, 1, script, this);
+    public void create(ScriptPartRender render, Script script) {
+        render.addElement(new ScriptPartRenderSnippetElement(container().getSnippet(0)));
     }
 
     @Override
@@ -41,6 +43,14 @@ public abstract class ScriptHeader implements ScriptRunnable, ScriptScopeParent 
     @Override
     public ScriptContainer container() {
         return container;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
     }
 
     public static class Serializer implements JsonDeserializer<ScriptHeader> {

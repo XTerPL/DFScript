@@ -10,6 +10,8 @@ import io.github.techstreet.dfscript.screen.widget.CText;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
+import io.github.techstreet.dfscript.script.render.ScriptPartRender;
+import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -126,11 +128,11 @@ public class ScriptFunction extends ScriptHeader {
         }
     }
 
-    public int create(CScrollPanel panel, int y, int index, Script script) {
-        panel.add(new CItem(5, y, functionIcon));
-        panel.add(new CText(15, y + 2, Text.literal(getName())));
+    @Override
+    public void create(ScriptPartRender render, Script script) {
+        render.addElement(new ScriptPartRenderIconElement(getName(), functionIcon));
 
-        return super.create(panel, y, index, script);
+        super.create(render, script);
     }
 
     public ScriptActionArgumentList argList() {

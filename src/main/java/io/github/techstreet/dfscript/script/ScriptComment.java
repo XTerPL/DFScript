@@ -5,9 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import io.github.techstreet.dfscript.screen.script.ScriptEditScreen;
-import io.github.techstreet.dfscript.screen.widget.CItem;
-import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
-import io.github.techstreet.dfscript.screen.widget.CTextField;
+import io.github.techstreet.dfscript.screen.widget.*;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import io.github.techstreet.dfscript.script.render.ScriptPartRenderDynamicElement;
@@ -45,19 +43,18 @@ public class ScriptComment extends ScriptPart {
     @Override
     public void create(ScriptPartRender render, Script script) {
         render.addElement(new ScriptPartRenderDynamicElement((args) -> {
+            int x = args.x();
             int y = args.y();
-            int indent = args.indent();
-            CScrollPanel panel = args.panel();
+            CWidgetContainer panel = args.container();
 
-            panel.add(new CItem(5+indent*5, y, new ItemStack(Items.MAP).setCustomName(Text.literal("Comment").setStyle(Style.EMPTY.withItalic(false)))));
+            panel.add(new CItem(x, y, new ItemStack(Items.MAP).setCustomName(Text.literal("Comment").setStyle(Style.EMPTY.withItalic(false)))));
 
-            CTextField cTextField = new CTextField(getComment(),15+indent*5, y-1, ScriptEditScreen.width-(15+indent*5)-5, 10, true);
+            CTextField cTextField = new CTextField(getComment(),10+x, y-1, 100, 10, true);
 
             cTextField.setChangedListener(() -> setComment(cTextField.getText()));
 
             panel.add(cTextField);
-            return y+10;
-        }));
+        }, (args) -> new ScriptPartRender.ScriptButtonPos(args.x(), args.y(), 100, 10), 10, 10));
     }
 
     @Override

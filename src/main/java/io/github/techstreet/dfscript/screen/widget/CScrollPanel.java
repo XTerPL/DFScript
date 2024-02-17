@@ -1,15 +1,5 @@
 package io.github.techstreet.dfscript.screen.widget;
 
-import io.github.techstreet.dfscript.DFScript;
-import io.github.techstreet.dfscript.util.RenderUtil;
-import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.util.math.MatrixStack;
-import org.joml.Vector4f;
-
 public class CScrollPanel extends CPanel {
     private int scroll = 0;
 
@@ -29,7 +19,7 @@ public class CScrollPanel extends CPanel {
 
     private int getMaxScroll() {
         int max = 0;
-        for (CWidget child : getChildren()) {
+        for (CWidget child : getAll()) {
             max = Math.max(max, child.getBounds().y + child.getBounds().height);
         }
         return max - getBounds().height;

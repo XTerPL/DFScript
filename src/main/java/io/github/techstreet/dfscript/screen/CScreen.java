@@ -2,6 +2,7 @@ package io.github.techstreet.dfscript.screen;
 
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.screen.widget.CWidget;
+import io.github.techstreet.dfscript.screen.widget.CWidgetContainer;
 import io.github.techstreet.dfscript.util.RenderUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +14,9 @@ import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-public class CScreen extends Screen {
+public class CScreen extends Screen implements CWidgetContainer {
 
     private final int width, height;
-    public final List<CWidget> widgets = new ArrayList<>();
 
     protected CScreen(int width, int height) {
         super(Text.literal("DFScript Screen"));
@@ -54,10 +54,10 @@ public class CScreen extends Screen {
         mouseX += width/2;
         mouseY += height/2;
 
-        for (CWidget cWidget : widgets) {
+        for (CWidget cWidget : getAll()) {
             cWidget.render(context, mouseX, mouseY, tickDelta);
         }
-        for (CWidget cWidget : widgets) {
+        for (CWidget cWidget : getAll()) {
             cWidget.renderOverlay(context, mouseX, mouseY, tickDelta);
         }
         stack.pop();
@@ -65,7 +65,7 @@ public class CScreen extends Screen {
 
     @Override
     public boolean charTyped(char ch, int keyCode) {
-        for (CWidget cWidget : widgets) {
+        for (CWidget cWidget : getAll()) {
             cWidget.charTyped(ch, keyCode);
         }
         return super.charTyped(ch, keyCode);
@@ -73,7 +73,7 @@ public class CScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        for (CWidget cWidget : widgets) {
+        for (CWidget cWidget : getAll()) {
             cWidget.keyPressed(keyCode, scanCode, modifiers);
         }
 
@@ -81,7 +81,7 @@ public class CScreen extends Screen {
     }
     @Override
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
-        for (CWidget cWidget : widgets) {
+        for (CWidget cWidget : getAll()) {
             cWidget.keyReleased(keyCode, scanCode, modifiers);
         }
 
@@ -93,8 +93,8 @@ public class CScreen extends Screen {
         mouseX = translateMouseX(mouseX);
         mouseY = translateMouseY(mouseY);
 
-        for (int i = widgets.size() - 1; i >= 0; i--) {
-            if (widgets.get(i).mouseClicked(mouseX, mouseY, button)) {
+        for (int i = getAll().length - 1; i >= 0; i--) {
+            if (getAll()[i].mouseClicked(mouseX, mouseY, button)) {
                 break;
             }
         }
@@ -106,7 +106,7 @@ public class CScreen extends Screen {
         mouseX = translateMouseX(mouseX);
         mouseY = translateMouseY(mouseY);
 
-        for (CWidget cWidget : widgets) {
+        for (CWidget cWidget : getAll()) {
             cWidget.mouseScrolled(mouseX, mouseY, vertical, horizontal);
         }
         return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
@@ -136,7 +136,7 @@ public class CScreen extends Screen {
 
     @Override
     public boolean shouldCloseOnEsc() {
-        for(CWidget widget : widgets) {
+        for(CWidget widget : getAll()) {
             if(!widget.enableClosingOnEsc()) {
                 return false;
             }
@@ -150,8 +150,8 @@ public class CScreen extends Screen {
         mouseX = translateMouseX(mouseX);
         mouseY = translateMouseY(mouseY);
 
-        for (int i = widgets.size() - 1; i >= 0; i--) {
-            if (widgets.get(i).mouseReleased(mouseX, mouseY, button)) {
+        for (int i = getAll().length - 1; i >= 0; i--) {
+            if (getAll()[i].mouseReleased(mouseX, mouseY, button)) {
                 break;
             }
         }
@@ -166,8 +166,8 @@ public class CScreen extends Screen {
         deltaX = translateMouseX(deltaX);
         deltaY = translateMouseY(deltaY);
 
-        for (int i = widgets.size() - 1; i >= 0; i--) {
-            if (widgets.get(i).mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) {
+        for (int i = getAll().length - 1; i >= 0; i--) {
+            if (getAll()[i].mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) {
                 break;
             }
         }

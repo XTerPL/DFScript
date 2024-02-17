@@ -1,7 +1,9 @@
 package io.github.techstreet.dfscript.script.render;
 
+import io.github.techstreet.dfscript.screen.widget.CPanel;
 import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
 import io.github.techstreet.dfscript.screen.widget.CWidget;
+import io.github.techstreet.dfscript.screen.widget.CWidgetContainer;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import net.minecraft.client.gui.DrawContext;
@@ -27,20 +29,19 @@ public class ScriptPartRender {
         return buttonPos;
     }
 
-    public int create(CScrollPanel panel, int y, int indent, Script script, ScriptHeader header) {
+    public int create(CWidgetContainer panel, int x, int y, Script script, ScriptHeader header) {
         buttonPos.clear();
         for (ScriptPartRenderElement element : elements) {
-            int origY = y;
-            y = element.render(panel, y, indent, script, header);
+            element.render(panel, x, y, script, header);
             if(element.canGenerateButton()) {
-                createIndent(panel, indent, origY, y - origY - 2);
-                buttonPos.add(new ScriptButtonPos(origY, y - origY));
+                buttonPos.add(element.getButtonPos(panel, x, y, script, header));
             }
+            y += element.getHeight(script);
         }
         return y;
     }
 
-    public static void createIndent(CScrollPanel panel, int indent, int y, int height)
+    public static void createIndent(CPanel panel, int indent, int y, int height)
     {
         for (int i = 0; i < indent; i ++) {
             int xpos = 8 + i*5;
@@ -59,7 +60,23 @@ public class ScriptPartRender {
         }
     }
 
-    public record ScriptButtonPos(int y, int height) {
+    public int getHeight(Script script) {
+        int height = 0;
+        for (ScriptPartRenderElement element : elements) {
+            height += element.getHeight(script);
+        }
+        return height;
+    }
+
+    public record ScriptButtonPos(int x, int y, int width, int height) {
+        public int getX() {
+            return x;
+        }
+
+        public int getWidth() {
+            return width;
+        }
+
         public int getY() {
             return y;
         }

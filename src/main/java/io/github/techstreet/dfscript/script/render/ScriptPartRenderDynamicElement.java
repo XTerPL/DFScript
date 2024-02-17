@@ -1,39 +1,56 @@
 package io.github.techstreet.dfscript.script.render;
 
-import io.github.techstreet.dfscript.screen.widget.CItem;
-import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
-import io.github.techstreet.dfscript.screen.widget.CText;
+import io.github.techstreet.dfscript.screen.widget.*;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ScriptPartRenderDynamicElement implements ScriptPartRenderElement {
-    private Function<ScriptPartRenderArgs, Integer> onRender;
+    private Consumer<ScriptPartRenderArgs> onRender;
+    private Function<ScriptPartRenderArgs, ScriptPartRender.ScriptButtonPos> getButtonPos;
 
-    public ScriptPartRenderDynamicElement(Function<ScriptPartRenderArgs, Integer> onRender) {
+    private int width, height;
+
+    public ScriptPartRenderDynamicElement(Consumer<ScriptPartRenderArgs> onRender, Function<ScriptPartRenderArgs, ScriptPartRender.ScriptButtonPos> getButtonPos, int width, int height) {
         this.onRender = onRender;
+        this.getButtonPos = getButtonPos;
+        this.width = width;
+        this.height = height;
     }
 
     @Override
-    public int render(CScrollPanel panel, int y, int indent, Script script, ScriptHeader header) {
-        return onRender.apply(new ScriptPartRenderArgs(panel, y, indent, script));
+    public void render(CWidgetContainer panel, int x, int y, Script script, ScriptHeader header) {
+        onRender.accept(new ScriptPartRenderArgs(panel, x, y, script));
     }
 
-    public record ScriptPartRenderArgs(CScrollPanel panel, int y, int indent, Script script) {
+    @Override
+    public ScriptPartRender.ScriptButtonPos getButtonPos(CWidgetContainer panel, int x, int y, Script script, ScriptHeader header) {
+        return getButtonPos.apply(new ScriptPartRenderArgs(panel, x, y, script));
+    }
+
+    @Override
+    public int getWidth() {
+        return width;
+    }
+
+    @Override
+    public int getHeight(Script script) {
+        return height;
+    }
+
+    public record ScriptPartRenderArgs(CWidgetContainer container, int x, int y, Script script) {
         public int y() {
             return y;
         }
 
-        public int indent() {
-            return indent;
+        public int x() {
+            return x;
         }
 
-        public CScrollPanel panel() {
-            return panel;
+        public CWidgetContainer container() {
+            return container;
         }
 
         public Script script() {

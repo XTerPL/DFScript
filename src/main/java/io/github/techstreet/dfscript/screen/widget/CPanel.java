@@ -7,16 +7,12 @@ import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Vector4f;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
-public abstract class CPanel implements CWidget {
-    private final List<CWidget> children = new ArrayList<>();
-    private final int x, y, width, height;
+public abstract class CPanel extends COffset {
+    private final int width, height;
 
     public CPanel(int x, int y, int w, int h) {
-        this.x = x;
-        this.y = y;
+        super(x,y);
         this.width = w;
         this.height = h;
     }
@@ -53,7 +49,7 @@ public abstract class CPanel implements CWidget {
         mouseY -= scroll;
         mouseX -= hScroll;
 
-        for (CWidget child : children) {
+        for (CWidget child : getAll()) {
             child.render(context, mouseX, mouseY, tickDelta);
         }
 
@@ -72,8 +68,8 @@ public abstract class CPanel implements CWidget {
         x -= this.x;
         y -= this.y;
 
-        for (int i = children.size() - 1; i >= 0; i--) {
-            if (children.get(i).mouseClicked(x, y, button)) {
+        for (int i = getAll().length - 1; i >= 0; i--) {
+            if (getAll()[i].mouseClicked(x, y, button)) {
                 return true;
             }
         }
@@ -91,8 +87,8 @@ public abstract class CPanel implements CWidget {
         x -= this.x;
         y -= this.y;
 
-        for (int i = children.size() - 1; i >= 0; i--) {
-            if (children.get(i).mouseReleased(x, y, button)) {
+        for (int i = getAll().length - 1; i >= 0; i--) {
+            if (getAll()[i].mouseReleased(x, y, button)) {
                 return true;
             }
         }
@@ -110,33 +106,12 @@ public abstract class CPanel implements CWidget {
         x -= this.x;
         y -= this.y;
 
-        for (int i = children.size() - 1; i >= 0; i--) {
-            if (children.get(i).mouseDragged(x, y, button, dx, dy)) {
+        for (int i = getAll().length - 1; i >= 0; i--) {
+            if (getAll()[i].mouseDragged(x, y, button, dx, dy)) {
                 return true;
             }
         }
         return false;
-    }
-
-    @Override
-    public void charTyped(char ch, int keyCode) {
-        for (CWidget child : children) {
-            child.charTyped(ch, keyCode);
-        }
-    }
-
-    @Override
-    public void keyPressed(int keyCode, int scanCode, int modifiers) {
-        for (CWidget child : children) {
-            child.keyPressed(keyCode, scanCode, modifiers);
-        }
-    }
-
-    @Override
-    public void keyReleased(int keyCode, int scanCode, int modifiers) {
-        for (CWidget child : children) {
-            child.keyReleased(keyCode, scanCode, modifiers);
-        }
     }
 
     @Override
@@ -150,19 +125,13 @@ public abstract class CPanel implements CWidget {
         mouseX -= this.x;
         mouseY -= this.y;
 
-        for (CWidget child : children) {
+        for (CWidget child : getAll()) {
             if(child.mouseScrolled(mouseX, mouseY, vertical, horizontal)) {
                 return true;
             }
         }
         return false;
     }
-
-    public void add(CWidget child) {
-        children.add(child);
-    }
-
-    public void clear() { children.clear(); }
 
     @Override
     public void renderOverlay(DrawContext context, int mouseX, int mouseY, float tickDelta) {
@@ -186,7 +155,7 @@ public abstract class CPanel implements CWidget {
             mouseY -= scroll;
         }
         stack.translate(hScroll, scroll, 0);
-        for (CWidget child : children) {
+        for (CWidget child : getAll()) {
             child.renderOverlay(context, mouseX, mouseY, tickDelta);
         }
         stack.pop();
@@ -195,25 +164,5 @@ public abstract class CPanel implements CWidget {
     @Override
     public Rectangle getBounds() {
         return new Rectangle(x, y, width, height);
-    }
-
-    public CWidget[] getChildren() {
-        return children.toArray(new CWidget[0]);
-    }
-
-    @Override
-    public boolean enableClosingOnEsc() {
-        for(CWidget widget : children) {
-            if(!widget.enableClosingOnEsc())
-            {
-                return false;
-            }
-        }
-
-        return CWidget.super.enableClosingOnEsc();
-    }
-
-    public void remove(CWidget w) {
-        children.remove(w);
     }
 }

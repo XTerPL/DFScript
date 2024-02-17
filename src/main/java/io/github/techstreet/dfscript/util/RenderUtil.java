@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ColorHelper;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
@@ -187,12 +188,12 @@ public class RenderUtil {
 
     static int renderSteps = 100;
 
-    public static void renderLine(MatrixStack stack, float x1, float y1, float x2, float y2, int color, float size) {
+    public static void renderLine(DrawContext context, float x1, float y1, float x2, float y2, int color, float size) {
         float stepX = (x2-x1)/renderSteps;
         float stepY = (y2-y1)/renderSteps;
 
         for(int i = 0; i <= renderSteps; i++) {
-            fill(stack, (x1-(size/2)), (y1-(size/2)), (x1+(size/2)), (y1+(size/2)), color);
+            fill(context, RenderLayer.getGui(), (x1-(size/2)), (y1-(size/2)), (x1+(size/2)), (y1+(size/2)), 0, color);
 
             x1 += stepX;
             y1 += stepY;
@@ -200,15 +201,9 @@ public class RenderUtil {
     }
 
     // these functions exist because fabric api dumb and used an integer for positions in the DrawableHelper class...
-    public static void fill(DrawContext context, float x1, float y1, float x2, float y2, int color) {
-        fill(context.getMatrices(), x1, y1, x2, y2, color);
-    }
-
-    public static void fill(MatrixStack stack, float x1, float y1, float x2, float y2, int color) {
-        fill(stack.peek().getPositionMatrix(), x1, y1, x2, y2, color);
-    }
-    public static void fill(Matrix4f matrix, float x1, float y1, float x2, float y2, int color) {
+    public static void fill(DrawContext context, RenderLayer layer, float x1, float y1, float x2, float y2, float z, int color) {
         float i;
+        Matrix4f matrix4f = context.getMatrices().peek().getPositionMatrix();
         if (x1 < x2) {
             i = x1;
             x1 = x2;
@@ -219,23 +214,15 @@ public class RenderUtil {
             y1 = y2;
             y2 = i;
         }
-        float f = (float)(color >> 24 & 0xFF) / 255.0f;
-        float g = (float)(color >> 16 & 0xFF) / 255.0f;
-        float h = (float)(color >> 8 & 0xFF) / 255.0f;
-        float j = (float)(color & 0xFF) / 255.0f;
-        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        RenderSystem.enableBlend();
-//        RenderSystem.disableTexture();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionColorTexProgram);
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        bufferBuilder.vertex(matrix, x1, y2, 0.0f).color(g, h, j, f).next();
-        bufferBuilder.vertex(matrix, x2, y2, 0.0f).color(g, h, j, f).next();
-        bufferBuilder.vertex(matrix, x2, y1, 0.0f).color(g, h, j, f).next();
-        bufferBuilder.vertex(matrix, x1, y1, 0.0f).color(g, h, j, f).next();
-//        BufferRenderer.drawWithShader(bufferBuilder.end());
-        BufferRenderer.draw(bufferBuilder.end());
-//        RenderSystem.enableTexture();
-        RenderSystem.disableBlend();
+        float f = (float) ColorHelper.Argb.getAlpha(color) / 255.0f;
+        float g = (float)ColorHelper.Argb.getRed(color) / 255.0f;
+        float h = (float)ColorHelper.Argb.getGreen(color) / 255.0f;
+        float j = (float)ColorHelper.Argb.getBlue(color) / 255.0f;
+        VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(layer);
+        vertexConsumer.vertex(matrix4f, x1, y1, z).color(g, h, j, f).next();
+        vertexConsumer.vertex(matrix4f, x1, y2, z).color(g, h, j, f).next();
+        vertexConsumer.vertex(matrix4f, x2, y2, z).color(g, h, j, f).next();
+        vertexConsumer.vertex(matrix4f, x2, y1, z).color(g, h, j, f).next();
+        context.draw();
     }
 }

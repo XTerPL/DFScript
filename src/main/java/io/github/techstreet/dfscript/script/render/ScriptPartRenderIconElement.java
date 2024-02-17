@@ -1,10 +1,10 @@
 package io.github.techstreet.dfscript.script.render;
 
-import io.github.techstreet.dfscript.screen.widget.CItem;
-import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
-import io.github.techstreet.dfscript.screen.widget.CText;
+import io.github.techstreet.dfscript.DFScript;
+import io.github.techstreet.dfscript.screen.widget.*;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 
@@ -18,10 +18,24 @@ public class ScriptPartRenderIconElement implements ScriptPartRenderElement {
     }
 
     @Override
-    public int render(CScrollPanel panel, int y, int indent, Script script, ScriptHeader header) {
-        panel.add(new CItem(5 + indent * 5, y, icon));
-        panel.add(new CText(15 + indent * 5, y + 2, Text.literal(name)));
+    public void render(CWidgetContainer panel, int x, int y, Script script, ScriptHeader header) {
+        panel.add(new CItem(x, y, icon));
+        panel.add(new CText(x + 10, y + 2, Text.literal(name)));
+    }
 
-        return y + 10;
+    @Override
+    public ScriptPartRender.ScriptButtonPos getButtonPos(CWidgetContainer panel, int x, int y, Script script, ScriptHeader header) {
+        return new ScriptPartRender.ScriptButtonPos(x, y, getWidth(), getHeight(script));
+    }
+
+    @Override
+    public int getWidth() {
+        TextRenderer t = DFScript.MC.textRenderer;
+        return 12+t.getWidth(name);
+    }
+
+    @Override
+    public int getHeight(Script script) {
+        return 10;
     }
 }

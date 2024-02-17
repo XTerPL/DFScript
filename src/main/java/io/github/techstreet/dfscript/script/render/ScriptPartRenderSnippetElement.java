@@ -1,6 +1,6 @@
 package io.github.techstreet.dfscript.script.render;
 
-import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
+import io.github.techstreet.dfscript.screen.widget.CWidgetContainer;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptSnippet;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
@@ -13,12 +13,27 @@ public class ScriptPartRenderSnippetElement implements ScriptPartRenderElement {
     }
 
     @Override
-    public int render(CScrollPanel panel, int y, int indent, Script script, ScriptHeader header) {
-        return snippet.create(panel, y, indent + 1, script, header);
+    public void render(CWidgetContainer panel, int x, int y, Script script, ScriptHeader header) {
+        snippet.create(panel, x + 7, y, script, header);
+    }
+
+    @Override
+    public ScriptPartRender.ScriptButtonPos getButtonPos(CWidgetContainer panel, int x, int y, Script script, ScriptHeader header) {
+        return new ScriptPartRender.ScriptButtonPos(x, y, getWidth(), getHeight(script));
     }
 
     @Override
     public boolean canGenerateButton() {
         return false;
+    }
+
+    @Override
+    public int getWidth() {
+        return 5;
+    }
+
+    @Override
+    public int getHeight(Script script) {
+        return snippet.getHeight(script);
     }
 }

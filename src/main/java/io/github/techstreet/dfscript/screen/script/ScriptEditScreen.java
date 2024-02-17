@@ -10,6 +10,7 @@ import io.github.techstreet.dfscript.script.ScriptManager;
 
 import io.github.techstreet.dfscript.script.event.ScriptFunction;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
+import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -24,10 +25,11 @@ public class ScriptEditScreen extends CReloadableScreen {
     private final Identifier identifier_main = new Identifier(DFScript.MOD_ID + ":wrench.png");
 
     private final Script script;
-    private static int scroll = 0;
+    private static double offsetX = 0;
+    private static double offsetY = 0;
 
-    public final static int width = 125;
-    private CScrollPanel panel;
+    public final static int width = 250;
+    private CDragPanel panel;
     private final List<CWidget> contextMenu = new ArrayList<>();
 
     public ScriptEditScreen(Script script) {
@@ -44,14 +46,21 @@ public class ScriptEditScreen extends CReloadableScreen {
 
         if(panel != null)
         {
-            scroll = panel.getScroll();
+            offsetX = panel.getOffsetCenterX();
+            offsetY = panel.getOffsetCenterY();
+        }
+        else
+        {
+            panel = new CDragPanel(0, 3, 120, 94);
+            widgets.add(panel);
         }
 
-        panel = new CScrollPanel(0, 3, 120, 94);
-        widgets.add(panel);
+        panel.setOffset(offsetX, offsetY);
+
+        reloadDragPanel();
 
         int y = 0;
-        int index = 0;
+
 
         CText name = new CText(5,y+2,Text.literal(script.getName()),0,1,false,false);
         panel.add(name);
@@ -60,97 +69,74 @@ public class ScriptEditScreen extends CReloadableScreen {
             DFScript.MC.setScreen(new ScriptSettingsScreen(this.script, true));
         });
         panel.add(settings);
-
-        y += 10;
-
-        for(ScriptHeader header : script.getHeaders()) {
-            int origY = y;
-            y = header.create(panel, y, index, script);
-            int currentIndex = index;
-            panel.add(new CButton(5, origY-1, 115, 10, "",() -> {}) {
-                @Override
-                public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
-                    Rectangle b = getBounds();
-
-                    if (b.contains(mouseX, mouseY)) {
-                        int color = 0x33000000;
-
-                        context.fill(b.x, b.y, b.x + b.width, b.y + b.height, color);
-                    }
-                }
-
-                @Override
-                public boolean mouseClicked(double x, double y, int button) {
-                    if (getBounds().contains(x, y)) {
-                        DFScript.MC.getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.UI_BUTTON_CLICK.value(), 1f,1f));
-
-                        if (button != 0) {
-                            CButton insertBefore = new CButton((int) x, (int) y, 40, 8, "Insert Before", () -> {
-                                DFScript.MC.setScreen(new ScriptHeaderCategoryScreen(script, currentIndex));
-                            });
-                            CButton insertAfter = new CButton((int) x, (int) y+8, 40, 8, "Insert After", () -> {
-                                DFScript.MC.setScreen(new ScriptHeaderCategoryScreen(script, currentIndex + 1));
-                            });
-                            CButton delete = new CButton((int) x, (int) y+16, 40, 8, "Delete", () -> {
-                                script.getHeaders().remove(currentIndex);
-                                if(header instanceof ScriptFunction f) {
-                                    script.removeFunction(f.getName());
-                                }
-                                reload();
-                            });
-                            DFScript.MC.send(() -> {
-                                panel.add(insertBefore);
-                                panel.add(insertAfter);
-                                panel.add(delete);
-                                contextMenu.add(insertBefore);
-                                contextMenu.add(insertAfter);
-                                contextMenu.add(delete);
-                            });
-                        }
-                        else {
-                            if(header instanceof ScriptFunction f) {
-                                DFScript.MC.setScreen(new ScriptEditFunctionScreen(f, script));
-                            }
-                        }
-                        return true;
-                    }
-                    return false;
-                }
-            });
-            index++;
-        }
-
-        CButton add = new CButton(37, y, 46, 8, "Add Header", () -> {
-            DFScript.MC.setScreen(new ScriptHeaderCategoryScreen(script, script.getHeaders().size()));
-        });
-
-        panel.add(add);
-
-        panel.setScroll(scroll);
     }
 
-    public void createIndent(int indent, int y)
-    {
-        for (int i = 0; i < indent; i += 5) {
-            int xpos = 8 + i;
-            int ypos = y;
-            panel.add(new CWidget() {
-                @Override
-                public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
-                    context.fill(xpos, ypos, xpos + 1, ypos + 8, 0xFF333333);
-                }
+    private void reloadDragPanel() {
+        panel.clear();
 
-                @Override
-                public Rectangle getBounds() {
-                    return new Rectangle(0, 0, 0, 0);
-                }
-            });
+        int index = 0;
+        for(ScriptHeader header : script.getHeaders()) {
+            ScriptPartRender render = new ScriptPartRender();
+            header.create(render, script);
+            render.create(panel, header.getX(), header.getY(), script, header);
+            int currentIndex = index;
+
+            for (var buttonPos : render.getButtonPositions()) {
+                panel.add(new CButton(buttonPos.getX(), buttonPos.getY(), buttonPos.getWidth(), buttonPos.getHeight(), "",() -> {}) {
+                    @Override
+                    public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
+                        Rectangle b = getBounds();
+                        int color = 0;
+                        boolean drawFill = false;
+                        if (b.contains(mouseX, mouseY)) {
+                            drawFill = true;
+                            color = 0x33000000;
+                        }
+
+                        if(drawFill) {
+                            for(var renderButtonPos : render.getButtonPositions()) {
+                                context.fill(renderButtonPos.getX(), renderButtonPos.getY(), renderButtonPos.getX() + renderButtonPos.getWidth(), renderButtonPos.getY() + renderButtonPos.getHeight(), color);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public boolean mouseClicked(double x, double y, int button) {
+                        if (getBounds().contains(x, y)) {
+                            DFScript.MC.getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.UI_BUTTON_CLICK.value(), 1f,1f));
+
+                            if (button != 0) {
+                                CButton delete = new CButton((int) x, (int) y+16, 40, 8, "Delete", () -> {
+                                    script.getHeaders().remove(currentIndex);
+                                    if(header instanceof ScriptFunction f) {
+                                        script.removeFunction(f.getName());
+                                    }
+                                    reload();
+                                });
+                                DFScript.MC.send(() -> {
+                                    widgets.add(delete);
+                                    contextMenu.add(delete);
+                                });
+                            }
+                            else {
+                                if(header instanceof ScriptFunction f) {
+                                    DFScript.MC.setScreen(new ScriptEditFunctionScreen(f, script));
+                                }
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+            }
+            index++;
         }
     }
 
     @Override
     public void close() {
-        scroll = panel.getScroll();
+        offsetX = panel.getOffsetCenterX();
+        offsetY = panel.getOffsetCenterY();
         ScriptManager.getInstance().saveScript(script);
         DFScript.MC.setScreen(new ScriptListScreen(true));
     }
@@ -164,7 +150,7 @@ public class ScriptEditScreen extends CReloadableScreen {
 
     private void clearContextMenu() {
         for (CWidget w : contextMenu) {
-            panel.remove(w);
+            widgets.remove(w);
         }
         contextMenu.clear();
     }
@@ -187,7 +173,7 @@ public class ScriptEditScreen extends CReloadableScreen {
             CButton button = new CButton(x, y, maxWidth, 8, w.getName(), w.getOnClick());
             y += 8;
 
-            panel.add(button);
+            widgets.add(button);
             contextMenu.add(button);
         }
     }

@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class ScriptParametrizedPart extends ScriptPart implements ScriptRunnable {
+public abstract class ScriptParametrizedPart extends ScriptPart {
 
     List<ScriptArgument> arguments;
 

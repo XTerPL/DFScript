@@ -49,11 +49,4 @@ public class ScriptEmptyHeader extends ScriptHeader {
             return obj;
         }
     }
-
-    public int create(CScrollPanel panel, int y, int index, Script script) {
-        panel.add(new CItem(5, y, emptyIcon));
-        panel.add(new CText(15, y + 2, Text.literal(emptyName)));
-
-        return super.create(panel, y, index, script);
-    }
 }

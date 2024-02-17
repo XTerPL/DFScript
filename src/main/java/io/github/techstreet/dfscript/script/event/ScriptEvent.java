@@ -5,6 +5,9 @@ import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
 import io.github.techstreet.dfscript.screen.widget.CText;
 import io.github.techstreet.dfscript.script.Script;
+import io.github.techstreet.dfscript.script.ScriptPart;
+import io.github.techstreet.dfscript.script.render.ScriptPartRender;
+import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
 import net.minecraft.text.Text;
 
 import java.lang.reflect.Type;
@@ -33,10 +36,10 @@ public class ScriptEvent extends ScriptHeader {
         }
     }
 
-    public int create(CScrollPanel panel, int y, int index, Script script) {
-        panel.add(new CItem(5, y, getType().getIcon()));
-        panel.add(new CText(15, y + 2, Text.literal(getType().getName())));
+    @Override
+    public void create(ScriptPartRender render, Script script) {
+        render.addElement(new ScriptPartRenderIconElement(type.getName(), type.getIcon()));
 
-        return super.create(panel, y, index, script);
+        super.create(render, script);
     }
 }
