@@ -3,6 +3,8 @@ package io.github.techstreet.dfscript.script.action;
 import com.google.gson.*;
 import io.github.techstreet.dfscript.script.values.*;
 import io.github.techstreet.dfscript.util.chat.ChatUtil;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -133,33 +135,19 @@ public class ScriptActionArgument {
     }
 
     private ItemStack convertIcon(ItemStack icon) {
-        NbtList lore = new NbtList();
-
-        NbtCompound comp = icon.getSubNbt("display");
-        if(comp != null) {
-            if (comp.getList("Lore", NbtElement.STRING_TYPE) != null) {
-                lore = comp.getList("Lore", NbtElement.STRING_TYPE);
-            }
-        }
+        List<Text> lore = icon.getOrDefault(DataComponentTypes.LORE, LoreComponent.DEFAULT).styledLines();
 
         if(optional() || plural()) {
-            lore.add(NbtString.of(Text.Serialization.toJsonString(
-                    Text.literal((optional() ? (plural() ? "Optional & " : "Optional") : "")
-                                    + (plural() ? "Plural" : ""))
-                            .fillStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY))
-            )));
+            lore.add(Text.literal((optional() ? (plural() ? "Optional & " : "Optional") : "") + (plural() ? "Plural" : ""))
+                            .fillStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)));
         }
 
         if(!(defaultValue() instanceof ScriptUnknownValue)) {
-            lore.add(NbtString.of(Text.Serialization.toJsonString(
-                    Text.literal("Default: "+defaultValue().formatAsText())
-                            .fillStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY))
-            )));
+            lore.add(Text.literal("Default: "+defaultValue().formatAsText())
+                            .fillStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)));
         }
 
-        if(comp != null) {
-            comp.put("Lore", lore);
-        }
+        icon.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         return icon;
     }
@@ -219,7 +207,7 @@ public class ScriptActionArgument {
         public ItemStack icon() {
             ItemStack itemStack = new ItemStack(icon);
 
-            itemStack.setCustomName(text());
+            itemStack.set(DataComponentTypes.CUSTOM_NAME, text());
 
             return itemStack;
         }
@@ -227,11 +215,9 @@ public class ScriptActionArgument {
         public ItemStack icon(String name) {
             ItemStack itemStack = new ItemStack(icon);
 
-            itemStack.setCustomName(Text.literal(name).setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+            itemStack.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name).setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
 
-            NbtList lore = new NbtList();
-            lore.add(NbtString.of(Text.Serialization.toJsonString(text())));
-            itemStack.getSubNbt("display").put("Lore", lore);
+            itemStack.set(DataComponentTypes.LORE, new LoreComponent(List.of(text())));
 
             return itemStack;
         }

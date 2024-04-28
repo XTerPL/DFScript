@@ -10,6 +10,7 @@ import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
 import io.github.techstreet.dfscript.util.chat.ChatUtil;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Style;
@@ -73,7 +74,9 @@ public final class ScriptFunctionArgument implements ScriptArgument {
 
     @Override
     public ItemStack getArgIcon() {
-        return new ItemStack(Items.BLUE_DYE).setCustomName(Text.literal("Function Argument").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        ItemStack result = new ItemStack(Items.BLUE_DYE);
+        result.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Function Argument").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        return result;
     }
 
     @Override

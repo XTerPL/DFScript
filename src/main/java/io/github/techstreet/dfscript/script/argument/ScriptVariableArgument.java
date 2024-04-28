@@ -7,6 +7,8 @@ import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
 import io.github.techstreet.dfscript.script.values.ScriptVariable;
 import io.github.techstreet.dfscript.util.ComponentUtil;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtList;
@@ -54,13 +56,14 @@ public final class ScriptVariableArgument implements ScriptArgument {
 
     @Override
     public ItemStack getArgIcon() {
-        ItemStack icon = new ItemStack(Items.MAGMA_CREAM).setCustomName(Text.literal("Variable").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        ItemStack icon = new ItemStack(Items.MAGMA_CREAM);
+        icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Variable").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(scope.getName())));
+        lore.add(scope.getName());
 
-        icon.getSubNbt("display").put("Lore", lore);
+        icon.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         return icon;
     }

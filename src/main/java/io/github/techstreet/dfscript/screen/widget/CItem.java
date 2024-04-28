@@ -4,9 +4,10 @@ import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.util.RenderUtil;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.item.TooltipContext;
+import net.minecraft.client.item.TooltipType;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -64,7 +65,7 @@ public class CItem implements CWidget {
             stack.scale(0.5f, 0.5f, 1f);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
 //            stack.peek().getPositionMatrix().addToLastColumn(new Vec3f(0, 0, 600));
-            context.drawTooltip(DFScript.MC.textRenderer, item.getTooltip(DFScript.MC.player, TooltipContext.BASIC), 0, 0);
+            context.drawTooltip(DFScript.MC.textRenderer, item.getTooltip(Item.TooltipContext.DEFAULT, DFScript.MC.player, TooltipType.BASIC), 0, 0);
 //            DFScript.MC.currentScreen.renderTooltip(stack, item.getTooltip(
 //                DFScript.MC.player, TooltipContext.BASIC
 //            ), Optional.empty(), 0, 0);

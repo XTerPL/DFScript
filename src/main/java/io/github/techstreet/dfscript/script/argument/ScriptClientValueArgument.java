@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -175,16 +177,15 @@ public enum ScriptClientValueArgument implements ScriptArgument {
     ScriptClientValueArgument(String name, String description, Item type, ScriptActionArgumentType varType, Function<ScriptTask, ScriptValue> consumer) {
         this.name = name;
         this.icon = new ItemStack(type);
-        icon.setCustomName(Text.literal(name)
+        icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name)
             .fillStyle(Style.EMPTY
                 .withItalic(false)));
-        NbtList lore = new NbtList();
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(description)
+        List<Text> lore = new ArrayList<>();
+        lore.add(Text.literal(description)
             .fillStyle(Style.EMPTY
                 .withColor(Formatting.GRAY)
-                .withItalic(false)))));
-        icon.getSubNbt("display")
-            .put("Lore", lore);
+                .withItalic(false)));
+        icon.set(DataComponentTypes.LORE, new LoreComponent(lore));
         this.consumer = consumer;
         this.type = varType;
     }
@@ -220,7 +221,9 @@ public enum ScriptClientValueArgument implements ScriptArgument {
 
     @Override
     public ItemStack getArgIcon() {
-        return new ItemStack(Items.NAME_TAG).setCustomName(Text.literal("Client Value").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        ItemStack result = new ItemStack(Items.NAME_TAG);
+        result.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Client Value").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        return result;
     }
 
     @Override

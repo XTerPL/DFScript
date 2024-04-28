@@ -8,6 +8,8 @@ import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
 import io.github.techstreet.dfscript.screen.widget.CText;
 import io.github.techstreet.dfscript.script.Script;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtList;
@@ -17,8 +19,9 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 
-import java.awt.*;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScriptEmptyHeader extends ScriptHeader {
 
@@ -29,14 +32,13 @@ public class ScriptEmptyHeader extends ScriptHeader {
         emptyName = "Empty...";
 
         emptyIcon = new ItemStack(Items.LIGHT_GRAY_DYE);
-        emptyIcon.setCustomName(Text.literal(emptyName).setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.WHITE)));
+        emptyIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(emptyName).setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.WHITE)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal("Literally can never be triggered...").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)))));
+        lore.add(Text.literal("Literally can never be triggered...").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
 
-        emptyIcon.getSubNbt("display")
-                .put("Lore", lore);
+        emptyIcon.set(DataComponentTypes.LORE, new LoreComponent(lore));
     }
 
     public static class Serializer implements JsonSerializer<ScriptEmptyHeader> {

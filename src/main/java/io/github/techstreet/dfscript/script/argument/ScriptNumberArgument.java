@@ -10,6 +10,7 @@ import io.github.techstreet.dfscript.script.execution.ScriptContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.values.ScriptNumberValue;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Style;
@@ -45,7 +46,9 @@ public record ScriptNumberArgument(double value) implements ScriptArgument {
 
     @Override
     public ItemStack getArgIcon() {
-        return new ItemStack(Items.SLIME_BALL).setCustomName(Text.literal("Number").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        ItemStack result = new ItemStack(Items.SLIME_BALL);
+        result.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Number").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        return result;
     }
 
     @Override

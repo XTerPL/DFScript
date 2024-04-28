@@ -10,6 +10,7 @@ import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.values.ScriptBoolValue;
 import io.github.techstreet.dfscript.script.values.ScriptNumberValue;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Style;
@@ -17,8 +18,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import java.lang.reflect.Type;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,7 +52,9 @@ public final class ScriptBoolArgument implements ScriptArgument {
 
     @Override
     public ItemStack getArgIcon() {
-        return new ItemStack(value ? Items.LIME_DYE : Items.RED_DYE).setCustomName(Text.literal(value ? "True" : "False").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        ItemStack result = new ItemStack(value ? Items.LIME_DYE : Items.RED_DYE);
+        result.set(DataComponentTypes.CUSTOM_NAME, Text.literal(value ? "True" : "False").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        return result;
     }
 
     @Override

@@ -6,6 +6,7 @@ import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.util.ScriptOptionSubtypeMismatchException;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
@@ -46,7 +47,9 @@ public class ScriptNamedOption {
     }
 
     public ItemStack getIcon() {
-        return option.getType().getIcon().setCustomName(Text.literal(getFullName()).fillStyle(Style.EMPTY.withItalic(false)));
+        ItemStack result = option.getType().getIcon();
+        result.set(DataComponentTypes.CUSTOM_NAME, Text.literal(getFullName()).fillStyle(Style.EMPTY.withItalic(false)));
+        return result;
     }
 
     public static class Serializer implements JsonSerializer<ScriptNamedOption>, JsonDeserializer<ScriptNamedOption> {

@@ -15,6 +15,8 @@ import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
 import io.github.techstreet.dfscript.script.values.ScriptBoolValue;
 import io.github.techstreet.dfscript.util.chat.ChatUtil;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtElement;
@@ -25,6 +27,7 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import javax.xml.crypto.Data;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,24 +39,23 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
     public static ItemStack booleanSetIcon = new ItemStack(Items.PISTON);
 
     static {
-        booleanSetIcon.setCustomName(Text.literal(booleanSetName)
+        booleanSetIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(booleanSetName)
                 .fillStyle(Style.EMPTY
                         .withColor(Formatting.WHITE)
                         .withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal("Sets a variable to the result of a condition.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)))));
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(""))));
+        lore.add(Text.literal("Sets a variable to the result of a condition.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        lore.add(Text.literal(""));
 
         MutableText t = ScriptActionArgument.ScriptActionArgumentType.VARIABLE.text();
         t.append(Text.literal(" - ").fillStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)))
                 .append(Text.literal("Result").fillStyle(Style.EMPTY.withItalic(false).withColor(Formatting.WHITE)));
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(t)));
+        lore.add(t);
 
-        booleanSetIcon.getSubNbt("display")
-                .put("Lore", lore);
+        booleanSetIcon.set(DataComponentTypes.LORE, new LoreComponent(lore));
     }
     boolean hasElse = false;
 
@@ -111,26 +113,23 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
     public ItemStack getIcon() {
         ItemStack icon = booleanSetIcon.copy();
 
-        icon.setCustomName(Text.literal(getName()).setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(getName()).setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal("Sets a variable to the result of a condition.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)))));
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(""))));
+        lore.add(Text.literal("Sets a variable to the result of a condition.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        lore.add(Text.literal(""));
 
         MutableText t = ScriptActionArgument.ScriptActionArgumentType.VARIABLE.text();
         t.append(Text.literal(" - ").fillStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)))
          .append(Text.literal("Result").fillStyle(Style.EMPTY.withItalic(false).withColor(Formatting.WHITE)));
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(t)));
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(""))));
+        lore.add(t);
+        lore.add(Text.literal(""));
 
-        for (Text txt : condition.getLore()) {
-            lore.add(NbtString.of(Text.Serialization.toJsonString(txt)));
-        }
+        lore.addAll(condition.getLore());
 
-        icon.getSubNbt("display")
-                .put("Lore", lore);
+        icon.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         return icon;
     }

@@ -9,6 +9,8 @@ import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.values.*;
 import io.github.techstreet.dfscript.util.*;
 import io.github.techstreet.dfscript.util.chat.ChatUtil;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -329,25 +331,16 @@ public enum ScriptConditionType {
     public ItemStack getIcon(String prefix) {
         ItemStack item = new ItemStack(icon);
 
-        item.setCustomName(Text.literal(prefix + (prefix.equals("") ? "" : " ") + name)
+        item.set(DataComponentTypes.CUSTOM_NAME, Text.literal(prefix + (prefix.equals("") ? "" : " ") + name)
             .fillStyle(Style.EMPTY
                 .withColor(Formatting.WHITE)
                 .withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>(getLore());
 
-        for (Text txt : getLore()) {
-            lore.add(NbtString.of(Text.Serialization.toJsonString(txt)));
-        }
+        item.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
-        item.getSubNbt("display")
-            .put("Lore", lore);
-
-        if(glow)
-        {
-            item.addEnchantment(Enchantments.UNBREAKING, 1);
-            item.addHideFlag(ItemStack.TooltipSection.ENCHANTMENTS);
-        }
+        item.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, glow);
 
         return item;
     }

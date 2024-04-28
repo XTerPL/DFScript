@@ -1,5 +1,7 @@
 package io.github.techstreet.dfscript.script.options;
 
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -10,6 +12,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.List;
 
 public enum ScriptOptionEnum {
     TEXT("Text", "A single option, no checks.", Items.BOOK, ScriptTextOption.class),
@@ -61,16 +65,15 @@ public enum ScriptOptionEnum {
     {
         ItemStack item = new ItemStack(icon);
 
-        item.setCustomName(Text.literal(name + " Option").fillStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        item.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name + " Option").fillStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(description)
+        lore.add(Text.literal(description)
                 .fillStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false))
-        )));
+        );
 
-        item.getSubNbt("display")
-                .put("Lore", lore);
+        item.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         return item;
     }

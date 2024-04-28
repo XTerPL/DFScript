@@ -11,6 +11,7 @@ import io.github.techstreet.dfscript.script.execution.ScriptContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.options.ScriptNamedOption;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Style;
@@ -69,7 +70,9 @@ public final class ScriptConfigArgument implements ScriptArgument {
 
     @Override
     public ItemStack getArgIcon() {
-        return new ItemStack(Items.INK_SAC).setCustomName(Text.literal("Config Value").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        ItemStack result = new ItemStack(Items.INK_SAC);
+        result.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Config Value").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        return result;
     }
 
     @Override

@@ -10,6 +10,8 @@ import io.github.techstreet.dfscript.screen.widget.CText;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -22,13 +24,16 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScriptFunction extends ScriptHeader {
 
     public static final ItemStack functionIcon;
 
     static {
-        functionIcon = new ItemStack(Items.LAPIS_BLOCK).setCustomName(Text.literal("Function").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        functionIcon = new ItemStack(Items.LAPIS_BLOCK);
+        functionIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Function").setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
     }
     private String name;
 
@@ -51,30 +56,27 @@ public class ScriptFunction extends ScriptHeader {
     public ItemStack getIcon() {
         ItemStack icon = new ItemStack(this.icon);
 
-        icon.setCustomName(Text.literal(getName()).setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(getName()).setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
-        if(description != "") {
+        if(description.isBlank()) {
             for (String descriptionLine: description.split("\n")) {
-                lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(descriptionLine)
+                lore.add(Text.literal(descriptionLine)
                         .fillStyle(Style.EMPTY
                                 .withColor(Formatting.GRAY)
-                                .withItalic(false)))));
+                                .withItalic(false)));
             }
 
             if(argList.size() > 0)
-                lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(""))));
+                lore.add(Text.literal(""));
         }
 
         for (ScriptActionArgument arg : argList) {
-            for (Text txt : arg.text()) {
-                lore.add(NbtString.of(Text.Serialization.toJsonString(txt)));
-            }
+            lore.addAll(arg.text());
         }
 
-        icon.getSubNbt("display")
-                .put("Lore", lore);
+        icon.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         return icon;
     }

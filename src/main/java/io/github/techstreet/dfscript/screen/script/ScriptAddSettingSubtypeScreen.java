@@ -11,6 +11,7 @@ import io.github.techstreet.dfscript.script.options.ScriptOptionEnum;
 import io.github.techstreet.dfscript.util.chat.ChatUtil;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
@@ -86,7 +87,8 @@ public class ScriptAddSettingSubtypeScreen extends CScreen {
 
             if(o == null) {
                 noNull = false;
-                icon = new ItemStack(Items.BARRIER).setCustomName(Text.of("None"));
+                icon = new ItemStack(Items.BARRIER);
+                icon.set(DataComponentTypes.CUSTOM_NAME,Text.of("None"));
             }
             else {
                 icon = o.getIcon();

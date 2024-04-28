@@ -7,6 +7,7 @@ import io.github.techstreet.dfscript.script.ScriptComment;
 import io.github.techstreet.dfscript.script.conditions.ScriptBooleanSet;
 import io.github.techstreet.dfscript.script.event.ScriptFunction;
 import io.github.techstreet.dfscript.script.repetitions.ScriptWhile;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -23,7 +24,7 @@ public enum ScriptActionCategory {
     VISUALS("Visuals", Items.ENDER_EYE),
     ACTIONS("Actions", Items.PLAYER_HEAD),
     MISC("Misc", Items.COMPASS, List.of(
-            new ScriptActionCategoryExtraPartCreator(new ItemStack(Items.MAP).setCustomName(Text.literal("Comment").setStyle(Style.EMPTY.withItalic(false))), () -> new ScriptComment(""))
+            new ScriptActionCategoryExtraPartCreator(ScriptComment.commentIcon, () -> new ScriptComment(""))
     )),
     VARIABLES("Variables", Items.IRON_INGOT),
     CONDITIONS("Conditions", Items.LEVER, List.of(
@@ -58,18 +59,18 @@ public enum ScriptActionCategory {
 
     ScriptActionCategory(String name, Item icon) {
         this.icon = new ItemStack(icon);
-        this.icon.setCustomName(Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
+        this.icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
     }
 
     ScriptActionCategory(String name, Item icon, List<ScriptActionCategoryExtra> extras) {
         this.icon = new ItemStack(icon);
-        this.icon.setCustomName(Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
+        this.icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
         this.extras = (script) -> extras;
     }
 
     ScriptActionCategory(String name, Item icon, Function<Script, List<ScriptActionCategoryExtra>> extras) {
         this.icon = new ItemStack(icon);
-        this.icon.setCustomName(Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
+        this.icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
         this.extras = extras;
     }
 

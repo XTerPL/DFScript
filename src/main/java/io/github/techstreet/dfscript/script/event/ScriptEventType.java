@@ -3,6 +3,8 @@ package io.github.techstreet.dfscript.script.event;
 import io.github.techstreet.dfscript.event.*;
 import io.github.techstreet.dfscript.event.system.Event;
 import io.github.techstreet.dfscript.script.menu.ScriptMenuClickButtonEvent;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -11,6 +13,9 @@ import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public enum ScriptEventType {
 
@@ -44,17 +49,16 @@ public enum ScriptEventType {
         this.codeutilitiesEvent = codeutilitiesEvent;
         this.name = name;
         icon = new ItemStack(item);
-        icon.setCustomName(Text.literal(name)
+        icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name)
             .setStyle(Style.EMPTY
                 .withColor(Formatting.WHITE)
                 .withItalic(false)));
-        NbtList lore = new NbtList();
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(description)
+        List<Text> lore = new ArrayList<>();
+        lore.add(Text.literal(description)
             .fillStyle(Style.EMPTY
                 .withColor(Formatting.GRAY)
-                .withItalic(false)))));
-        icon.getSubNbt("display")
-            .put("Lore", lore);
+                .withItalic(false)));
+        icon.set(DataComponentTypes.LORE, new LoreComponent(lore));
     }
 
     public ItemStack getIcon() {

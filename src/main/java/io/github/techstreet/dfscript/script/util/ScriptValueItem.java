@@ -1,5 +1,6 @@
 package io.github.techstreet.dfscript.script.util;
 
+import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.script.values.ScriptDictionaryValue;
 import io.github.techstreet.dfscript.script.values.ScriptListValue;
 import io.github.techstreet.dfscript.script.values.ScriptNumberValue;
@@ -16,16 +17,24 @@ import net.minecraft.nbt.NbtDouble;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
+import net.minecraft.registry.RegistryWrapper;
 
 public class ScriptValueItem {
 
     public static ItemStack itemFromValue(ScriptValue value) {
-        return ItemStack.fromNbt((NbtCompound) nbtFromValue(value));
+        if(DFScript.MC.player == null || DFScript.MC.player.clientWorld == null) {
+            throw new UnsupportedOperationException("Dictionary to Item Conversion only available when in a world!");
+        }
+
+        return ItemStack.fromNbtOrEmpty(DFScript.MC.player.getRegistryManager(), (NbtCompound) nbtFromValue(value));
     }
 
     public static ScriptValue valueFromItem(ItemStack item) {
-        NbtCompound nbt = new NbtCompound();
-        item.writeNbt(nbt);
+        if(DFScript.MC.player == null || DFScript.MC.player.clientWorld == null) {
+            throw new UnsupportedOperationException("Item to Dictionary Conversion only available when in a world!");
+        }
+
+        NbtElement nbt = item.encodeAllowEmpty(DFScript.MC.player.clientWorld.getRegistryManager());
         return valueFromNbt(nbt);
     }
 

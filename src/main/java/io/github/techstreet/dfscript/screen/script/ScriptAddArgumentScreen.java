@@ -9,6 +9,7 @@ import io.github.techstreet.dfscript.script.ScriptParametrizedPart;
 import io.github.techstreet.dfscript.script.argument.*;
 import io.github.techstreet.dfscript.script.event.ScriptFunction;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Style;
@@ -34,35 +35,35 @@ public class ScriptAddArgumentScreen extends CScreen {
         if(overwrite != null) input.setText(overwrite);
 
         ItemStack textIcon = new ItemStack(Items.BOOK);
-        textIcon.setCustomName(Text.literal("Text")
+        textIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Text")
             .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack numberIcon = new ItemStack(Items.SLIME_BALL);
-        numberIcon.setCustomName(Text.literal("Number")
+        numberIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Number")
             .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack variableIcon = new ItemStack(Items.MAGMA_CREAM);
-        variableIcon.setCustomName(Text.literal("Variable")
+        variableIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Variable")
             .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack clientValueIcon = new ItemStack(Items.NAME_TAG);
-        clientValueIcon.setCustomName(Text.literal("Client Value")
+        clientValueIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Client Value")
             .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack configValueIcon = new ItemStack(Items.INK_SAC);
-        configValueIcon.setCustomName(Text.literal("Config Value")
+        configValueIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Config Value")
             .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack functionArgumentIcon = new ItemStack(Items.BLUE_DYE);
-        functionArgumentIcon.setCustomName(Text.literal("Function Argument")
+        functionArgumentIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Function Argument")
                 .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack trueIcon = new ItemStack(Items.LIME_DYE);
-        trueIcon.setCustomName(Text.literal("True")
+        trueIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("True")
                 .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack falseIcon = new ItemStack(Items.RED_DYE);
-        falseIcon.setCustomName(Text.literal("False")
+        falseIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("False")
                 .fillStyle(Style.EMPTY.withItalic(false)));
 
         CItem addNumber = new CItem(2, 40, numberIcon);

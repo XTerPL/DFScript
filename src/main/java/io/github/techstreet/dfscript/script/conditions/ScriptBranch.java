@@ -11,6 +11,8 @@ import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtList;
@@ -32,29 +34,27 @@ public class ScriptBranch extends ScriptParametrizedPart implements ScriptScopeP
     static ItemStack elseIcon = new ItemStack(Items.END_STONE);
 
     static {
-        closeBracketIcon.setCustomName(Text.literal(closeBracketName)
+        closeBracketIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(closeBracketName)
                 .fillStyle(Style.EMPTY
                         .withColor(Formatting.WHITE)
                         .withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal("Closes the current code block.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)))));
+        lore.add(Text.literal("Closes the current code block.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
 
-        closeBracketIcon.getSubNbt("display")
-                .put("Lore", lore);
+        closeBracketIcon.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
-        elseIcon.setCustomName(Text.literal(elseName)
+        elseIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(elseName)
                 .fillStyle(Style.EMPTY
                         .withColor(Formatting.WHITE)
                         .withItalic(false)));
 
-        lore = new NbtList();
+        lore = new ArrayList<>();
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal("Executes if the last IF condition failed.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)))));
+        lore.add(Text.literal("Executes if the last IF condition failed.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
 
-        elseIcon.getSubNbt("display")
-                .put("Lore", lore);
+        elseIcon.set(DataComponentTypes.LORE, new LoreComponent(lore));
     }
     boolean hasElse = false;
 

@@ -13,6 +13,8 @@ import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtList;
@@ -32,17 +34,16 @@ public class ScriptWhile extends ScriptRepetition {
     public static ItemStack whileIcon = new ItemStack(Items.GOLD_NUGGET);
 
     static {
-        whileIcon.setCustomName(Text.literal(whileName)
+        whileIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(whileName)
                 .fillStyle(Style.EMPTY
                         .withColor(Formatting.WHITE)
                         .withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal("Repeats while a condition is true.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)))));
+        lore.add(Text.literal("Repeats while a condition is true.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
 
-        whileIcon.getSubNbt("display")
-                .put("Lore", lore);
+        whileIcon.set(DataComponentTypes.LORE, new LoreComponent(lore));
     }
     private ScriptCondition condition;
 
@@ -62,19 +63,16 @@ public class ScriptWhile extends ScriptRepetition {
     public ItemStack getIcon() {
         ItemStack icon = whileIcon.copy();
 
-        icon.setCustomName(Text.literal(getName()).setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
+        icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(getName()).setStyle(Style.EMPTY.withColor(Formatting.WHITE).withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal("Repeats while a condition is true.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)))));
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(""))));
+        lore.add(Text.literal("Repeats while a condition is true.").setStyle(Style.EMPTY.withColor(Formatting.GRAY).withItalic(false)));
+        lore.add(Text.literal(""));
 
-        for (Text txt : condition.getLore()) {
-            lore.add(NbtString.of(Text.Serialization.toJsonString(txt)));
-        }
+        lore.addAll(condition.getLore());
 
-        icon.getSubNbt("display")
-                .put("Lore", lore);
+        icon.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         return icon;
     }

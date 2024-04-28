@@ -9,6 +9,8 @@ import io.github.techstreet.dfscript.script.values.ScriptNumberValue;
 import io.github.techstreet.dfscript.script.values.ScriptTextValue;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
 import io.github.techstreet.dfscript.util.chat.ChatUtil;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -120,48 +122,41 @@ public enum ScriptRepetitionType {
     public ItemStack getIcon() {
         ItemStack item = new ItemStack(icon);
 
-        item.setCustomName(Text.literal(name)
+        item.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name)
             .fillStyle(Style.EMPTY
                 .withColor(Formatting.WHITE)
                 .withItalic(false)));
 
-        NbtList lore = new NbtList();
+        List<Text> lore = new ArrayList<>();
 
         if(isDeprecated())
         {
-            lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal("This action is deprecated!")
+            lore.add(Text.literal("This action is deprecated!")
                     .fillStyle(Style.EMPTY
                             .withColor(Formatting.RED)
-                            .withItalic(false)))));
-            lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal("Use '" + deprecated.getName() + "'")
+                            .withItalic(false)));
+            lore.add(Text.literal("Use '" + deprecated.getName() + "'")
                     .fillStyle(Style.EMPTY
                             .withColor(Formatting.RED)
-                            .withItalic(false)))));
+                            .withItalic(false)));
         }
 
         for (String descriptionLine: description) {
-            lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(descriptionLine)
+            lore.add(Text.literal(descriptionLine)
                 .fillStyle(Style.EMPTY
                       .withColor(Formatting.GRAY)
-                      .withItalic(false)))));
+                      .withItalic(false)));
         }
 
-        lore.add(NbtString.of(Text.Serialization.toJsonString(Text.literal(""))));
+        lore.add(Text.literal(""));
 
         for (ScriptActionArgument arg : arguments) {
-            for (Text txt : arg.text()) {
-                lore.add(NbtString.of(Text.Serialization.toJsonString(txt)));
-            }
+            lore.addAll(arg.text());
         }
 
-        item.getSubNbt("display")
-            .put("Lore", lore);
+        item.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
-        if(glow)
-        {
-            item.addEnchantment(Enchantments.UNBREAKING, 1);
-            item.addHideFlag(ItemStack.TooltipSection.ENCHANTMENTS);
-        }
+        item.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, glow);
 
         return item;
     }

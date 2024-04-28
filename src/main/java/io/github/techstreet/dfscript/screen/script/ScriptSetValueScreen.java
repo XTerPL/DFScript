@@ -13,6 +13,7 @@ import io.github.techstreet.dfscript.script.argument.ScriptVariableScope;
 import io.github.techstreet.dfscript.script.event.ScriptFunction;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import io.github.techstreet.dfscript.script.values.*;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Style;
@@ -44,23 +45,23 @@ public class ScriptSetValueScreen extends CScreen {
         if(overwrite != null) input.setText(overwrite);
 
         ItemStack unknownIcon = new ItemStack(Items.LIGHT_GRAY_DYE);
-        unknownIcon.setCustomName(Text.literal("Unknown")
+        unknownIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Unknown")
                 .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack textIcon = new ItemStack(Items.BOOK);
-        textIcon.setCustomName(Text.literal("Text")
+        textIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Text")
             .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack numberIcon = new ItemStack(Items.SLIME_BALL);
-        numberIcon.setCustomName(Text.literal("Number")
+        numberIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Number")
             .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack trueIcon = new ItemStack(Items.LIME_DYE);
-        trueIcon.setCustomName(Text.literal("True")
+        trueIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("True")
                 .fillStyle(Style.EMPTY.withItalic(false)));
 
         ItemStack falseIcon = new ItemStack(Items.RED_DYE);
-        falseIcon.setCustomName(Text.literal("False")
+        falseIcon.set(DataComponentTypes.CUSTOM_NAME, Text.literal("False")
                 .fillStyle(Style.EMPTY.withItalic(false)));
 
         CItem addNumber;
