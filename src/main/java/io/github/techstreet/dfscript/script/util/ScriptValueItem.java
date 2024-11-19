@@ -17,7 +17,6 @@ import net.minecraft.nbt.NbtDouble;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
-import net.minecraft.registry.RegistryWrapper;
 
 public class ScriptValueItem {
 
@@ -60,7 +59,7 @@ public class ScriptValueItem {
         }
     }
 
-    private static ScriptValue valueFromNbt(NbtElement nbt) {
+    public static ScriptValue valueFromNbt(NbtElement nbt) {
         if (nbt instanceof NbtString nbts) {
             return new ScriptTextValue(nbts.asString());
         } else if (nbt instanceof AbstractNbtNumber nbtn) {

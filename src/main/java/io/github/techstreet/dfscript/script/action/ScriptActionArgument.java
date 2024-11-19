@@ -2,18 +2,12 @@ package io.github.techstreet.dfscript.script.action;
 
 import com.google.gson.*;
 import io.github.techstreet.dfscript.script.values.*;
-import io.github.techstreet.dfscript.util.chat.ChatUtil;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.text.MutableText;
-import net.minecraft.text.NbtTextContent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -170,6 +164,7 @@ public class ScriptActionArgument {
         BOOL("Boolean", Items.LEVER, ScriptBoolValue.class),
         LIST("List", Items.CHEST, null),
         DICTIONARY("Dictionary", Items.CHEST_MINECART, null),
+        ITEM("Item", Items.ITEM_FRAME, null),
         ANY("Any", Items.ENDER_EYE, ScriptValue.class);
 
         private final String name;

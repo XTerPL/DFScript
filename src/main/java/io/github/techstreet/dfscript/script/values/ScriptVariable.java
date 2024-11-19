@@ -1,12 +1,9 @@
 package io.github.techstreet.dfscript.script.values;
 
-import io.github.techstreet.dfscript.script.values.ScriptUnknownValue;
-import io.github.techstreet.dfscript.script.values.ScriptValue;
+import net.minecraft.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ScriptVariable extends ScriptValue {
     private ScriptValue value;
@@ -51,6 +48,11 @@ public class ScriptVariable extends ScriptValue {
     @Override
     public boolean asBoolean() {
         return get().asBoolean();
+    }
+
+    @Override
+    public ItemStack asItem() {
+        return get().asItem();
     }
 
     @Override

@@ -1,8 +1,7 @@
 package io.github.techstreet.dfscript.script.values;
 
 import com.google.gson.*;
-import io.github.techstreet.dfscript.script.event.ScriptFunction;
-import net.minecraft.registry.Registries;
+import net.minecraft.item.ItemStack;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -25,11 +24,15 @@ public abstract class ScriptValue {
     }
 
     public HashMap<String,ScriptValue> asDictionary() {
-        throw new UnsupportedOperationException("Cannot convert " + typeName() + " to directory");
+        throw new UnsupportedOperationException("Cannot convert " + typeName() + " to dictionary");
     }
 
     public boolean asBoolean() {
-        throw new UnsupportedOperationException("Cannot convert " + typeName() + " to directory");
+        throw new UnsupportedOperationException("Cannot convert " + typeName() + " to boolean");
+    }
+
+    public ItemStack asItem() {
+        throw new UnsupportedOperationException("Cannot convert " + typeName() + " to item");
     }
 
     public ScriptValue get() {
@@ -38,7 +41,7 @@ public abstract class ScriptValue {
 
     @Override
     public String toString() {
-        return asText();
+        return formatAsText();
     }
 
     public abstract boolean valueEquals(ScriptValue other);
@@ -85,6 +88,7 @@ public abstract class ScriptValue {
                         String objectType = object.get("___objectType").getAsString();
                         return switch(objectType) {
                             case "dict" -> context.deserialize(object.get("dict"), ScriptDictionaryValue.class);
+                            case "item" -> context.deserialize(object, ScriptItemValue.class);
                             default ->
                                 throw new JsonParseException("Unable to convert a json object of type '" + objectType + "' into a script value");
                         };
