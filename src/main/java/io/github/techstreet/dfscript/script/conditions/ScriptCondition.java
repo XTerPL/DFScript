@@ -2,7 +2,6 @@ package io.github.techstreet.dfscript.script.conditions;
 
 import com.google.gson.*;
 import io.github.techstreet.dfscript.script.*;
-import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import net.minecraft.item.ItemStack;
@@ -14,7 +13,7 @@ import java.util.List;
 public abstract class ScriptCondition {
     boolean inverted = false;
 
-    public void create(ScriptPartRender render, Script script, String prefix, String invertedPrefix) {
+    public void create(ScriptPartRender render, Script script, String prefix, String invertedPrefix, ScriptPart owningPart) {
 
     }
 
@@ -33,6 +32,10 @@ public abstract class ScriptCondition {
 
     public abstract ItemStack getIcon(String prefix, String invertedPrefix);
     public abstract String getName(String prefix, String invertedPrefix);
+
+    public ScriptNotice getNotice(String prefix) {
+        return new ScriptNotice(ScriptNoticeLevel.NORMAL);
+    }
 
     public abstract List<Text> getLore();
 

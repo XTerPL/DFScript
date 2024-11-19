@@ -8,9 +8,7 @@ import io.github.techstreet.dfscript.script.ScriptSnippet;
 import io.github.techstreet.dfscript.script.action.*;
 import io.github.techstreet.dfscript.script.conditions.ScriptBranch;
 import io.github.techstreet.dfscript.script.conditions.ScriptBuiltinCondition;
-import io.github.techstreet.dfscript.script.conditions.ScriptCondition;
 import io.github.techstreet.dfscript.script.conditions.ScriptConditionType;
-import io.github.techstreet.dfscript.script.event.ScriptEventType;
 import io.github.techstreet.dfscript.script.repetitions.ScriptBuiltinRepetition;
 import io.github.techstreet.dfscript.script.repetitions.ScriptRepetitionType;
 
@@ -54,9 +52,7 @@ public class ScriptAddPartScreen extends CScreen {
         {
             for(ScriptActionCategoryExtra extra : category.getExtras(script)) {
                 CItem item = new CItem(x, y, extra.getIcon());
-                item.setClickListener((btn) -> {
-                    extra.click(script, snippet, insertIndex);
-                });
+                item.setClickListener((btn) -> extra.click(script, snippet, insertIndex));
                 widgets.add(item);
                 x += 10;
                 if (x >= size-10) {
@@ -68,7 +64,7 @@ public class ScriptAddPartScreen extends CScreen {
 
         for (ScriptActionType type : ScriptActionType.values()) {
             if (type.getCategory() != category) continue;
-            if (type.isDeprecated()) continue;
+            if (type.getNotice().isHidden()) continue;
 
             CItem item = new CItem(x, y, type.getIcon());
             item.setClickListener((btn) -> {
@@ -86,7 +82,7 @@ public class ScriptAddPartScreen extends CScreen {
 
         for (ScriptConditionType type : ScriptConditionType.values()) {
             if (type.getCategory() != category) continue;
-            if (type.isDeprecated()) continue;
+            if (type.getNotice("").isHidden()) continue;
 
             CItem item = new CItem(x, y, type.getIcon("If"));
             item.setClickListener((btn) -> {
@@ -104,7 +100,7 @@ public class ScriptAddPartScreen extends CScreen {
 
         for (ScriptRepetitionType type : ScriptRepetitionType.values()) {
             if (type.getCategory() != category) continue;
-            if (type.isDeprecated()) continue;
+            if (type.getNotice().isHidden()) continue;
 
             CItem item = new CItem(x, y, type.getIcon());
             item.setClickListener((btn) -> {

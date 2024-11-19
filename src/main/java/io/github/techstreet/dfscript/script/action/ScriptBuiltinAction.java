@@ -4,19 +4,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import io.github.techstreet.dfscript.screen.widget.CItem;
-import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
-import io.github.techstreet.dfscript.screen.widget.CText;
 import io.github.techstreet.dfscript.script.Script;
+import io.github.techstreet.dfscript.script.ScriptNotice;
+import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ScriptBuiltinAction extends ScriptAction {
@@ -44,8 +43,16 @@ public class ScriptBuiltinAction extends ScriptAction {
     }
 
     @Override
-    public boolean isDeprecated() {
-        return type.isDeprecated();
+    public ArrayList<ScriptNotice> getNotices() {
+        var notices = super.getNotices();
+
+        ScriptNotice typeNotice = type.getNotice();
+
+        if(typeNotice.getLevel() != ScriptNoticeLevel.NORMAL) {
+            notices.add(typeNotice);
+        }
+
+        return notices;
     }
 
     @Override
@@ -60,7 +67,7 @@ public class ScriptBuiltinAction extends ScriptAction {
 
     @Override
     public void create(ScriptPartRender render, Script script) {
-        render.addElement(new ScriptPartRenderIconElement(getType().getName(), getType().getIcon()));
+        render.addElement(new ScriptPartRenderIconElement(getName(), putNotices(getIcon())));
 
         super.create(render, script);
     }

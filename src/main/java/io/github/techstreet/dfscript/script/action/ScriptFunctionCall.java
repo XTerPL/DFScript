@@ -7,7 +7,6 @@ import com.google.gson.JsonSerializer;
 import io.github.techstreet.dfscript.screen.overlay.OverlayManager;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
-import io.github.techstreet.dfscript.script.argument.ScriptConfigArgument;
 import io.github.techstreet.dfscript.script.event.ScriptFunction;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
@@ -17,7 +16,6 @@ import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
 import net.minecraft.item.ItemStack;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ScriptFunctionCall extends ScriptAction {
@@ -60,11 +58,6 @@ public class ScriptFunctionCall extends ScriptAction {
     }
 
     @Override
-    public boolean isDeprecated() {
-        return false;
-    }
-
-    @Override
     public ItemStack getIcon() {
         return getFunction().getIcon();
     }
@@ -76,7 +69,7 @@ public class ScriptFunctionCall extends ScriptAction {
 
     @Override
     public void create(ScriptPartRender render, Script script) {
-        render.addElement(new ScriptPartRenderIconElement(getFunctionName(), getIcon()));
+        render.addElement(new ScriptPartRenderIconElement(getFunctionName(), putNotices(getIcon())));
 
         super.create(render, script);
     }

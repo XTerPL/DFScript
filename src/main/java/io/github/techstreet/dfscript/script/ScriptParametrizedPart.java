@@ -1,17 +1,11 @@
 package io.github.techstreet.dfscript.script;
 
-import com.google.gson.*;
-import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
-import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
-import io.github.techstreet.dfscript.script.action.ScriptActionType;
-import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
 import io.github.techstreet.dfscript.script.argument.ScriptConfigArgument;
 import io.github.techstreet.dfscript.script.argument.ScriptFunctionArgument;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
-import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -23,10 +17,20 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
     public ScriptParametrizedPart(List<ScriptArgument> arguments) {
         this.arguments = arguments;
     }
-    //ScriptGroup getGroup();
 
     public List<ScriptArgument> getArguments() {
         return arguments;
+    }
+
+    @Override
+    public ArrayList<ScriptNotice> getNotices() {
+        var notices = super.getNotices();
+
+        if(blocked()) {
+            notices.add(new ScriptNotice(ScriptNoticeLevel.UNUSABLE_ARGUMENTS));
+        }
+
+        return notices;
     }
 
     public void updateScriptReferences(Script script, ScriptHeader header) {
@@ -43,7 +47,7 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
     public void updateConfigArguments(String oldOption, String newOption) {
         for(ScriptArgument arg : getArguments()) {
             if (arg instanceof ScriptConfigArgument carg) {
-                if(carg.getName() == oldOption)
+                if(Objects.equals(carg.getName(), oldOption))
                 {
                     carg.setOption(newOption);
                 }
@@ -71,9 +75,20 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
     public void replaceFunctionArgument(String oldArg, String newArg) {
         for(ScriptArgument arg : getArguments()) {
             if (arg instanceof ScriptFunctionArgument carg) {
-                if(carg.getName() == oldArg)
+                if(Objects.equals(carg.getName(), oldArg))
                 {
                     carg.setFunctionArg(newArg);
+                }
+            }
+        }
+    }
+
+    public void replaceClientValue(ScriptClientValueArgument oldClientValue, ScriptClientValueArgument newClientValue) {
+        for(int i = 0; i < getArguments().size(); i++) {
+            if (getArguments().get(i) instanceof ScriptClientValueArgument clientValue) {
+                if(clientValue == oldClientValue)
+                {
+                    arguments.set(i, newClientValue);
                 }
             }
         }
@@ -94,5 +109,14 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
             }
             index++;
         }
+    }
+
+    public boolean blocked() {
+        for(ScriptArgument arg : arguments) {
+            if(arg.getNotice().disablesScript()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

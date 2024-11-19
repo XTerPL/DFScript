@@ -9,21 +9,19 @@ import io.github.techstreet.dfscript.event.KeyPressEvent;
 import io.github.techstreet.dfscript.event.ReceiveChatEvent;
 import io.github.techstreet.dfscript.event.RecieveSoundEvent;
 import io.github.techstreet.dfscript.event.SendChatEvent;
-import io.github.techstreet.dfscript.event.system.Event;
+import io.github.techstreet.dfscript.script.ScriptNotice;
+import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument.ScriptActionArgumentType;
-import io.github.techstreet.dfscript.script.execution.ScriptContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.menu.ScriptMenuClickButtonEvent;
 import io.github.techstreet.dfscript.script.util.ScriptValueItem;
-import io.github.techstreet.dfscript.script.values.ScriptListValue;
-import io.github.techstreet.dfscript.script.values.ScriptNumberValue;
-import io.github.techstreet.dfscript.script.values.ScriptTextValue;
-import io.github.techstreet.dfscript.script.values.ScriptValue;
+import io.github.techstreet.dfscript.script.values.*;
 import io.github.techstreet.dfscript.util.ComponentUtil;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import net.minecraft.component.DataComponentTypes;
@@ -31,8 +29,6 @@ import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -169,42 +165,121 @@ public enum ScriptClientValueArgument implements ScriptArgument {
         }
     });
 
-    private final String name;
-    private final ItemStack icon;
-    private final Function<ScriptTask, ScriptValue> consumer;
-    private final ScriptActionArgumentType type;
+    private Function<ScriptTask, ScriptValue> valueGetter = (task) -> new ScriptUnknownValue();
+    private ScriptActionArgumentType type = null;
+
+    private boolean glow = false;
+    private Item icon = Items.STONE;
+    private String name = "Unnamed Action";
+    private final List<String> description = new ArrayList<>();
+
+    private ScriptClientValueArgument alternative = null;
+    private ScriptNoticeLevel noticeLevel = ScriptNoticeLevel.NORMAL;
+
+    ScriptClientValueArgument(Consumer<ScriptClientValueArgument> builder) {
+        description.add("No description provided.");
+        builder.accept(this);
+    }
 
     ScriptClientValueArgument(String name, String description, Item type, ScriptActionArgumentType varType, Function<ScriptTask, ScriptValue> consumer) {
-        this.name = name;
-        this.icon = new ItemStack(type);
-        icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name)
-            .fillStyle(Style.EMPTY
-                .withItalic(false)));
+        name(name).description(description).icon(type).valueGetter(varType, consumer);
+    }
+
+    ScriptClientValueArgument(String name, String description, Item type, ScriptActionArgumentType varType, Function<ScriptTask, ScriptValue> consumer, Consumer<ScriptClientValueArgument> builder) {
+        this(name, description, type, varType, consumer);
+        builder.accept(this);
+    }
+
+    public ItemStack getIcon() {
+        ItemStack item = new ItemStack(icon);
+
+        item.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name)
+                .fillStyle(Style.EMPTY
+                        .withColor(Formatting.WHITE)
+                        .withItalic(false)));
+
         List<Text> lore = new ArrayList<>();
-        lore.add(Text.literal(description)
-            .fillStyle(Style.EMPTY
-                .withColor(Formatting.GRAY)
-                .withItalic(false)));
-        icon.set(DataComponentTypes.LORE, new LoreComponent(lore));
-        this.consumer = consumer;
-        this.type = varType;
+
+        for (String descriptionLine: description) {
+            lore.add(Text.literal(descriptionLine)
+                    .fillStyle(Style.EMPTY
+                            .withColor(Formatting.GRAY)
+                            .withItalic(false)));
+        }
+
+        item.set(DataComponentTypes.LORE, new LoreComponent(lore));
+
+        item.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, glow);
+
+        return item;
     }
 
     public String getName() {
         return name;
     }
 
-    public ItemStack getIcon() {
-        return icon;
+    public ScriptNotice getNotice() {
+        if(alternative != null) {
+            return new ScriptNotice(noticeLevel, "Consider using '" + alternative.getName() + "' instead.");
+        }
+
+        return new ScriptNotice(noticeLevel);
+    }
+
+    private ScriptClientValueArgument valueGetter(ScriptActionArgumentType type, Function<ScriptTask, ScriptValue> valueGetter) {
+        this.type = type;
+        this.valueGetter = valueGetter;
+        return this;
+    }
+
+    private ScriptClientValueArgument icon(Item icon, boolean glow) {
+        this.icon = icon;
+        this.glow = glow;
+        return this;
+    }
+
+    private ScriptClientValueArgument icon(Item icon) {
+        icon(icon, false);
+        return this;
+    }
+
+    private ScriptClientValueArgument name(String name) {
+        this.name = name;
+        return this;
+    }
+
+    private ScriptClientValueArgument description(String description) {
+        this.description.clear();
+        this.description.addAll(Arrays.asList(description.split("\n", -1)));
+        return this;
+    }
+
+    public ScriptClientValueArgument deprecate() {
+        noticeLevel = ScriptNoticeLevel.DEPRECATION;
+        return this;
+    }
+
+    public ScriptClientValueArgument removeUsability() {
+        noticeLevel = ScriptNoticeLevel.UNUSABILITY;
+        return this;
+    }
+
+    public ScriptClientValueArgument proposeAlternative(ScriptClientValueArgument alternative) {
+        this.alternative = alternative;
+
+        return this;
     }
 
     @Override
     public ScriptValue getValue(ScriptTask task) {
-        return consumer.apply(task);
+        return valueGetter.apply(task);
     }
 
     @Override
     public boolean convertableTo(ScriptActionArgumentType type) {
+        if(this.type == null) {
+            return false;
+        }
         return this.type.convertableTo(type);
     }
 

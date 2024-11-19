@@ -3,11 +3,10 @@ package io.github.techstreet.dfscript.script;
 import com.google.gson.*;
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.event.system.Event;
-import io.github.techstreet.dfscript.script.action.ScriptAction;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
-import io.github.techstreet.dfscript.script.argument.ScriptUnknownArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
 import io.github.techstreet.dfscript.script.conditions.ScriptBranch;
 import io.github.techstreet.dfscript.script.conditions.ScriptBuiltinCondition;
 import io.github.techstreet.dfscript.script.conditions.ScriptCondition;
@@ -15,15 +14,9 @@ import io.github.techstreet.dfscript.script.conditions.ScriptConditionType;
 import io.github.techstreet.dfscript.script.event.*;
 import io.github.techstreet.dfscript.script.options.ScriptNamedOption;
 import io.github.techstreet.dfscript.script.execution.ScriptContext;
-import io.github.techstreet.dfscript.script.execution.ScriptPosStack;
-import io.github.techstreet.dfscript.script.execution.ScriptScopeVariables;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
-import io.github.techstreet.dfscript.script.options.ScriptOption;
-import io.github.techstreet.dfscript.script.options.ScriptOptionEnum;
 import io.github.techstreet.dfscript.script.repetitions.ScriptBuiltinRepetition;
-import io.github.techstreet.dfscript.script.repetitions.ScriptRepetition;
 import io.github.techstreet.dfscript.script.repetitions.ScriptRepetitionType;
-import io.github.techstreet.dfscript.script.util.ScriptOptionSubtypeMismatchException;
 import io.github.techstreet.dfscript.script.values.ScriptUnknownValue;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
 import io.github.techstreet.dfscript.util.chat.ChatType;
@@ -33,7 +26,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -77,6 +69,10 @@ public class Script {
 
     public void invoke(Event event) {
         if(disabled) return;
+
+        if(blocked()) {
+            return;
+        }
 
         for (ScriptHeader part : headers) {
             if (part instanceof ScriptEvent se) {
@@ -239,6 +235,19 @@ public class Script {
         return disabled;
     }
 
+    public boolean blocked() {
+        for(ScriptHeader header : headers) {
+            for(ScriptSnippet snippet : header.container().snippets)
+            {
+                if(snippet.blocked()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public void setDisabled(boolean b) {
         disabled = b;
     }
@@ -282,6 +291,12 @@ public class Script {
     public void replaceRepetition(ScriptRepetitionType oldRepetition, ScriptRepetitionType newRepetition) {
         for(ScriptHeader header : headers) {
             header.forEach((snippet) -> snippet.replaceRepetition(oldRepetition, newRepetition));
+        }
+    }
+
+    public void replaceClientValue(ScriptClientValueArgument oldClientValue, ScriptClientValueArgument newClientValue) {
+        for(ScriptHeader header : headers) {
+            header.forEach((snippet) -> snippet.replaceClientValue(oldClientValue, newClientValue));
         }
     }
 
@@ -557,7 +572,7 @@ public class Script {
                                 breakOut = true;
                             }
                             case "ELSE" -> {
-                                ScriptPart latestPart = snippet.get(snippet.size()-1);
+                                ScriptPart latestPart = snippet.getLast();
 
                                 ScriptSnippet elseSnippet = new ScriptSnippet();
 

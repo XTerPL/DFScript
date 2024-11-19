@@ -6,7 +6,8 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import io.github.techstreet.dfscript.screen.ContextMenuButton;
 import io.github.techstreet.dfscript.script.Script;
-import io.github.techstreet.dfscript.script.action.ScriptActionArgument;
+import io.github.techstreet.dfscript.script.ScriptNotice;
+import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.conditions.ScriptCondition;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
@@ -17,9 +18,6 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -45,7 +43,7 @@ public class ScriptWhile extends ScriptRepetition {
 
         whileIcon.set(DataComponentTypes.LORE, new LoreComponent(lore));
     }
-    private ScriptCondition condition;
+    private final ScriptCondition condition;
 
     public ScriptWhile(List<ScriptArgument> arguments, ScriptCondition condition) {
         super(arguments);
@@ -54,7 +52,7 @@ public class ScriptWhile extends ScriptRepetition {
 
     @Override
     public void create(ScriptPartRender render, Script script) {
-        render.addElement(new ScriptPartRenderIconElement(getName(), getIcon()));
+        render.addElement(new ScriptPartRenderIconElement(getName(), putNotices(getIcon())));
 
         super.create(render, script);
     }
@@ -83,9 +81,22 @@ public class ScriptWhile extends ScriptRepetition {
     }
 
     @Override
+    public ArrayList<ScriptNotice> getNotices() {
+        var notices = super.getNotices();
+
+        ScriptNotice typeNotice = condition.getNotice(whileName + ": ");
+
+        if(typeNotice.getLevel() != ScriptNoticeLevel.NORMAL) {
+            notices.add(typeNotice);
+        }
+
+        return notices;
+    }
+
+    @Override
     public List<ContextMenuButton> getContextMenu() {
         List<ContextMenuButton> extra = new ArrayList<>();
-        extra.add(new ContextMenuButton("Invert", () -> condition.invert()));
+        extra.add(new ContextMenuButton("Invert", condition::invert));
         return extra;
     }
 

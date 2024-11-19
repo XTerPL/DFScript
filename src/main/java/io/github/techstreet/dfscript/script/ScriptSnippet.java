@@ -12,12 +12,12 @@ import io.github.techstreet.dfscript.screen.widget.CText;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
 import io.github.techstreet.dfscript.script.action.ScriptFunctionCall;
+import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
 import io.github.techstreet.dfscript.script.conditions.ScriptBranch;
 import io.github.techstreet.dfscript.script.conditions.ScriptBuiltinCondition;
 import io.github.techstreet.dfscript.script.conditions.ScriptConditionType;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
-import io.github.techstreet.dfscript.script.execution.ScriptPosStackElement;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import io.github.techstreet.dfscript.script.repetitions.ScriptBuiltinRepetition;
@@ -33,7 +33,6 @@ import java.awt.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ScriptSnippet extends ArrayList<ScriptPart> {
     boolean hidden = false;
@@ -91,31 +90,25 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
             part.create(render, script);
             y = render.create(panel, y, indent, script, header);
             int currentIndex = index;
+
+            ScriptNoticeLevel topLevel = ScriptNoticeLevel.NORMAL;
+
+            for(ScriptNotice notice : part.getNotices()) {
+                if(notice.getSeverity() > topLevel.getSeverity()) {
+                    topLevel = notice.getLevel();
+                }
+            }
+
             for (var buttonPos : render.getButtonPositions()) {
+                ScriptNoticeLevel finalTopLevel = topLevel;
                 panel.add(new CButton(5, buttonPos.getY() - 1, 115, buttonPos.height(), "", () -> {
                 }) {
                     @Override
                     public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
                         Rectangle b = getBounds();
-                        int color = 0;
-                        boolean drawFill = false;
-                        if (b.contains(mouseX, mouseY)) {
-                            drawFill = true;
-                            color = 0x33000000;
+                        int color = finalTopLevel.getPartColor(b.contains(mouseX, mouseY));
 
-                            if (part.isDeprecated()) {
-                                color = 0x80FF0000;
-                            }
-
-
-                        } else {
-                            if (part.isDeprecated()) {
-                                drawFill = true;
-                                color = 0x33FF0000;
-                            }
-                        }
-
-                        if(drawFill) {
+                        if(color > 0x00FFFFFF) {
                             for(var renderButtonPos : render.getButtonPositions()) {
                                 context.fill(b.x, renderButtonPos.y()-1, b.x + b.width, renderButtonPos.y()-1 + renderButtonPos.height(), color);
                             }
@@ -211,6 +204,17 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
         }
     }
 
+    public void replaceClientValue(ScriptClientValueArgument oldClientValue, ScriptClientValueArgument newClientValue) {
+        for(ScriptPart part : this) {
+            if(part instanceof ScriptParametrizedPart p) {
+                p.replaceClientValue(oldClientValue, newClientValue);
+            }
+            if(part instanceof ScriptScopeParent p) {
+                p.forEach((snippet) -> snippet.replaceClientValue(oldClientValue, newClientValue));
+            }
+        }
+    }
+
     public void updateScriptReferences(Script script, ScriptHeader header) {
         for(ScriptPart part : this) {
             if(part instanceof ScriptParametrizedPart p) {
@@ -295,6 +299,33 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
                 p.forEach((snippet) -> snippet.removeFunctionArgument(arg));
             }
         }
+    }
+
+    public boolean blocked() {
+        for(ScriptPart part : this) {
+            for(ScriptNotice notice : part.getNotices())
+            {
+                if(notice.disablesScript()) {
+                    return true;
+                }
+            }
+            if(part instanceof ScriptParametrizedPart p) {
+                if(p.blocked())
+                {
+                    return true;
+                }
+            }
+            if(part instanceof ScriptScopeParent p) {
+                for(ScriptSnippet snippet : p.container().snippets) {
+                    if(snippet.blocked())
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     public static class Serializer implements JsonSerializer<ScriptSnippet>, JsonDeserializer<ScriptSnippet> {

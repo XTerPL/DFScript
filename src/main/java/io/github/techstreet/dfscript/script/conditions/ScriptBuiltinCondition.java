@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import io.github.techstreet.dfscript.script.Script;
+import io.github.techstreet.dfscript.script.ScriptNotice;
+import io.github.techstreet.dfscript.script.ScriptPart;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
@@ -22,10 +24,10 @@ public class ScriptBuiltinCondition extends ScriptCondition {
     }
 
     @Override
-    public void create(ScriptPartRender render, Script script, String prefix, String invertedPrefix) {
-        render.addElement(new ScriptPartRenderIconElement(getName(prefix, invertedPrefix), getIcon(prefix, invertedPrefix)));
+    public void create(ScriptPartRender render, Script script, String prefix, String invertedPrefix, ScriptPart owningPart) {
+        render.addElement(new ScriptPartRenderIconElement(getName(prefix, invertedPrefix), owningPart.putNotices(getIcon(prefix, invertedPrefix))));
 
-        super.create(render, script, prefix, invertedPrefix);
+        super.create(render, script, prefix, invertedPrefix, owningPart);
     }
 
     @Override
@@ -41,6 +43,11 @@ public class ScriptBuiltinCondition extends ScriptCondition {
     @Override
     public String getName(String prefix, String invertedPrefix) {
         return (isInverted() ? invertedPrefix : prefix) + " " + getType().getName();
+    }
+
+    @Override
+    public ScriptNotice getNotice(String prefix) {
+        return type.getNotice(prefix);
     }
 
     @Override

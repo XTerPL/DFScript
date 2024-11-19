@@ -12,6 +12,8 @@ import io.github.techstreet.dfscript.event.HudRenderEvent;
 import io.github.techstreet.dfscript.event.system.CancellableEvent;
 import io.github.techstreet.dfscript.screen.overlay.OverlayManager;
 import io.github.techstreet.dfscript.script.ScriptManager;
+import io.github.techstreet.dfscript.script.ScriptNotice;
+import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument.ScriptActionArgumentType;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
@@ -30,12 +32,9 @@ import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.network.packet.s2c.play.CommandTreeS2CPacket;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Style;
@@ -48,7 +47,6 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Array;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Consumer;
@@ -821,7 +819,7 @@ public enum ScriptActionType {
 
     PLAY_SOUND_OLD(builder -> builder.name("Play Sound OLD")
             .description("Plays a sound.")
-            .deprecate(PLAY_SOUND)
+            .deprecate().proposeAlternative(PLAY_SOUND)
             .icon(Items.NAUTILUS_SHELL)
             .category(ScriptActionCategory.VISUALS)
             .arg("Sound", ScriptActionArgumentType.TEXT)
@@ -930,7 +928,7 @@ public enum ScriptActionType {
 
     DISPLAY_TITLE_OLD(builder -> builder.name("Display Title OLD")
             .description("Displays a title.")
-            .deprecate(DISPLAY_TITLE)
+            .deprecate().proposeAlternative(DISPLAY_TITLE)
             .icon(Items.WARPED_SIGN)
             .category(ScriptActionCategory.VISUALS)
             .arg("Title", ScriptActionArgumentType.TEXT)
@@ -1024,7 +1022,7 @@ public enum ScriptActionType {
             .arg("Text",ScriptActionArgumentType.TEXT)
             .arg("First Index",ScriptActionArgumentType.NUMBER)
             .arg("Last Index",ScriptActionArgumentType.NUMBER)
-            .deprecate(TEXT_SUBTEXT)
+            .deprecate().proposeAlternative(TEXT_SUBTEXT)
             .action(ctx -> {
                 String text = ctx.value("Text").asText();
                 int start = (int)ctx.value("First Index").asNumber()+1;
@@ -1076,7 +1074,7 @@ public enum ScriptActionType {
             .category(ScriptActionCategory.MISC)
             .arg("Result", ScriptActionArgumentType.VARIABLE)
             .arg("Filename", ScriptActionArgumentType.TEXT)
-            .deprecate(READ_FILE)
+            .deprecate().proposeAlternative(READ_FILE)
             .action(ctx -> {
                 String filename = ctx.value("Filename").asText();
 
@@ -1127,7 +1125,7 @@ public enum ScriptActionType {
             .category(ScriptActionCategory.MISC)
             .arg("Filename", ScriptActionArgumentType.TEXT)
             .arg("Content", ScriptActionArgumentType.ANY)
-            .deprecate(WRITE_FILE)
+            .deprecate().proposeAlternative(WRITE_FILE)
             .action(ctx -> {
                 String filename = ctx.value("Filename").asText();
                 ScriptValue value = ctx.value("Content");
@@ -1467,7 +1465,7 @@ public enum ScriptActionType {
         .description("Generates a random number between two other numbers.")
         .icon(Items.HOPPER)
         .category(ScriptActionCategory.NUMBERS)
-        .deprecate(RANDOM_DOUBLE)
+        .deprecate().proposeAlternative(RANDOM_DOUBLE)
         .arg("Result", ScriptActionArgumentType.VARIABLE)
         .arg("Min", ScriptActionArgumentType.NUMBER)
         .arg("Max", ScriptActionArgumentType.NUMBER)
@@ -1674,11 +1672,11 @@ public enum ScriptActionType {
     private boolean glow = false;
     private Item icon = Items.STONE;
     private String name = "Unnamed Action";
-    private boolean hasChildren = false;
     private ScriptActionCategory category = ScriptActionCategory.MISC;
-    private List<String> description = new ArrayList();
+    private final List<String> description = new ArrayList<>();
 
-    private ScriptActionType deprecated = null; //if deprecated == null, the action is not deprecated
+    private ScriptActionType alternative = null;
+    private ScriptNoticeLevel noticeLevel = ScriptNoticeLevel.NORMAL;
     private final ScriptActionArgumentList arguments = new ScriptActionArgumentList();
     ScriptActionType(Consumer<ScriptActionType> builder) {
         description.add("No description provided.");
@@ -1693,18 +1691,6 @@ public enum ScriptActionType {
                 .withItalic(false)));
 
         List<Text> lore = new ArrayList<>();
-
-        if(isDeprecated())
-        {
-            lore.add(Text.literal("This action is deprecated!")
-                    .fillStyle(Style.EMPTY
-                            .withColor(Formatting.RED)
-                            .withItalic(false)));
-            lore.add(Text.literal("Use '" + deprecated.getName() + "'")
-                    .fillStyle(Style.EMPTY
-                            .withColor(Formatting.RED)
-                            .withItalic(false)));
-        }
 
         for (String descriptionLine: description) {
             lore.add(Text.literal(descriptionLine)
@@ -1729,12 +1715,12 @@ public enum ScriptActionType {
         return name;
     }
 
-    public boolean isDeprecated() {
-        return deprecated != null;
-    }
+    public ScriptNotice getNotice() {
+        if(alternative != null) {
+            return new ScriptNotice(noticeLevel, "Consider using '" + alternative.getName() + "' instead.");
+        }
 
-    public boolean hasChildren() {
-        return hasChildren;
+        return new ScriptNotice(noticeLevel);
     }
 
     public ScriptActionCategory getCategory() {
@@ -1762,11 +1748,6 @@ public enum ScriptActionType {
         return this;
     }
 
-    private ScriptActionType hasChildren(boolean hasChildren) {
-        this.hasChildren = hasChildren;
-        return this;
-    }
-
     private ScriptActionType category(ScriptActionCategory category) {
         this.category = category;
         return this;
@@ -1790,8 +1771,18 @@ public enum ScriptActionType {
         });
     }
 
-    public ScriptActionType deprecate(ScriptActionType newScriptActionType) {
-        deprecated = newScriptActionType;
+    public ScriptActionType deprecate() {
+        noticeLevel = ScriptNoticeLevel.DEPRECATION;
+        return this;
+    }
+
+    public ScriptActionType removeUsability() {
+        noticeLevel = ScriptNoticeLevel.UNUSABILITY;
+        return this;
+    }
+
+    public ScriptActionType proposeAlternative(ScriptActionType alternative) {
+        this.alternative = alternative;
 
         return this;
     }

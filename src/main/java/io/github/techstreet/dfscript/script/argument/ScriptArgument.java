@@ -6,6 +6,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import io.github.techstreet.dfscript.screen.ContextMenuButton;
+import io.github.techstreet.dfscript.script.ScriptNotice;
+import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument.ScriptActionArgumentType;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.values.ScriptValue;
@@ -25,6 +27,10 @@ public interface ScriptArgument {
     ItemStack getArgIcon();
 
     String getArgText();
+
+    default ScriptNotice getNotice() {
+        return new ScriptNotice(ScriptNoticeLevel.NORMAL);
+    }
 
     default List<ContextMenuButton> getContextMenu() {
         return new ArrayList<>();

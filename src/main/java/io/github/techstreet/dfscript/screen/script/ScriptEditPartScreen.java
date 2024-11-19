@@ -2,10 +2,10 @@ package io.github.techstreet.dfscript.screen.script;
 
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.screen.CReloadableScreen;
-import io.github.techstreet.dfscript.screen.CScreen;
 import io.github.techstreet.dfscript.screen.ContextMenuButton;
 import io.github.techstreet.dfscript.screen.widget.*;
 import io.github.techstreet.dfscript.script.Script;
+import io.github.techstreet.dfscript.script.ScriptNotice;
 import io.github.techstreet.dfscript.script.ScriptParametrizedPart;
 import io.github.techstreet.dfscript.script.argument.*;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
@@ -13,13 +13,10 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 
 import java.awt.*;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 public class ScriptEditPartScreen extends CReloadableScreen {
@@ -90,7 +87,7 @@ public class ScriptEditPartScreen extends CReloadableScreen {
         clearContextMenu();
         panel.clear();
 
-        panel.add(new CItem(5, 3, action.getIcon()));
+        panel.add(new CItem(5, 3, action.putNotices(action.getIcon())));
         panel.add(new CText(15, 5, Text.of(action.getName())));
 
         int y = 15;
@@ -105,13 +102,15 @@ public class ScriptEditPartScreen extends CReloadableScreen {
 
             int currentIndex = index;
 
+            ScriptNotice notice = arg.getNotice();
 
             panel.add(new CButton(5, y-1, 85, 10, "",() -> {}) {
                 @Override
                 public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
                     Rectangle b = getBounds();
-                    if (b.contains(mouseX, mouseY)) {
-                        context.fill(b.x, b.y, b.x + b.width, b.y + b.height, 0x33000000);
+                    int color = notice.getPartColor(b.contains(mouseX, mouseY));
+                    if (color > 0x00FFFFFF) {
+                        context.fill(b.x, b.y, b.x + b.width, b.y + b.height, color);
                     }
                 }
 
@@ -134,15 +133,9 @@ public class ScriptEditPartScreen extends CReloadableScreen {
 
                         if (button != 0) {
                             List<ContextMenuButton> contextMenuButtons = new ArrayList<>();
-                            contextMenuButtons.add(new ContextMenuButton("Insert Before", () -> {
-                                DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, currentIndex, header));
-                            }, false));
-                            contextMenuButtons.add(new ContextMenuButton("Insert After", () -> {
-                                DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, currentIndex+1, header));
-                            }, false));
-                            contextMenuButtons.add(new ContextMenuButton("Delete", () -> {
-                                action.getArguments().remove(currentIndex);
-                            }));
+                            contextMenuButtons.add(new ContextMenuButton("Insert Before", () -> DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, currentIndex, header)), false));
+                            contextMenuButtons.add(new ContextMenuButton("Insert After", () -> DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, currentIndex+1, header)), false));
+                            contextMenuButtons.add(new ContextMenuButton("Delete", () -> action.getArguments().remove(currentIndex)));
                             contextMenuButtons.addAll(action.getArguments().get(currentIndex).getContextMenu());
                             DFScript.MC.send(() -> {
                                 if(DFScript.MC.currentScreen instanceof ScriptEditPartScreen screen) {
@@ -161,9 +154,8 @@ public class ScriptEditPartScreen extends CReloadableScreen {
 
         }
 
-        CButton add = new CButton(25, y, 40, 8, "Add", () -> {
-            DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, action.getArguments().size(), header));
-        });
+        CButton add = new CButton(25, y, 40, 8, "Add", () ->
+                DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, action.getArguments().size(), header)));
         panel.add(add);
     }
 }

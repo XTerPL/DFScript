@@ -15,8 +15,6 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -69,7 +67,7 @@ public class ScriptBranch extends ScriptParametrizedPart implements ScriptScopeP
 
     @Override
     public void create(ScriptPartRender render, Script script) {
-        condition.create(render, script, "If", "Unless");
+        condition.create(render, script, "If", "Unless", this);
 
         render.addElement(container.createSnippet(0));
 
@@ -106,6 +104,19 @@ public class ScriptBranch extends ScriptParametrizedPart implements ScriptScopeP
 
     public ScriptCondition getCondition() {
         return condition;
+    }
+
+    @Override
+    public ArrayList<ScriptNotice> getNotices() {
+        var notices = super.getNotices();
+
+        ScriptNotice typeNotice = condition.getNotice("If ");
+
+        if(typeNotice.getLevel() != ScriptNoticeLevel.NORMAL) {
+            notices.add(typeNotice);
+        }
+
+        return notices;
     }
 
     @Override

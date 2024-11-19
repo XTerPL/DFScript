@@ -8,10 +8,7 @@ import io.github.techstreet.dfscript.script.ScriptPart;
 import io.github.techstreet.dfscript.script.ScriptSnippet;
 import io.github.techstreet.dfscript.script.action.*;
 import io.github.techstreet.dfscript.script.conditions.*;
-import io.github.techstreet.dfscript.script.repetitions.ScriptBuiltinRepetition;
-import io.github.techstreet.dfscript.script.repetitions.ScriptRepetitionType;
 
-import java.util.ArrayList;
 import java.util.function.Function;
 
 public class ScriptConditionSelectScreen extends CScreen {
@@ -36,7 +33,7 @@ public class ScriptConditionSelectScreen extends CScreen {
 
         for (ScriptConditionType type : ScriptConditionType.values()) {
             if (type.getCategory() != category) continue;
-            if (type.isDeprecated()) continue;
+            if (type.getNotice("").isHidden()) continue;
 
             CItem item = new CItem(x, y, type.getIcon(""));
             item.setClickListener((btn) -> {

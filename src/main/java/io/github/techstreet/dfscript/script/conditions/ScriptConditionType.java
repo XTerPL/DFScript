@@ -1,6 +1,8 @@
 package io.github.techstreet.dfscript.script.conditions;
 
 import io.github.techstreet.dfscript.DFScript;
+import io.github.techstreet.dfscript.script.ScriptNotice;
+import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument.ScriptActionArgumentType;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
@@ -11,12 +13,9 @@ import io.github.techstreet.dfscript.util.*;
 import io.github.techstreet.dfscript.util.chat.ChatUtil;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -43,7 +42,7 @@ public enum ScriptConditionType {
         .category(ScriptActionCategory.VARIABLES)
         .arg("Value", ScriptActionArgumentType.ANY)
         .arg("Other", ScriptActionArgumentType.ANY)
-        .deprecate(IF_EQUALS)
+        .deprecate().proposeAlternative(IF_EQUALS)
         .action(ctx -> !ctx.value("Value").valueEquals(ctx.value("Other")))),
 
     IF_GREATER(builder -> builder.name("Greater")
@@ -103,7 +102,7 @@ public enum ScriptConditionType {
             .arg("Value", ScriptActionArgumentType.NUMBER)
             .arg("Minimum", ScriptActionArgumentType.NUMBER)
             .arg("Maximum", ScriptActionArgumentType.NUMBER)
-            .deprecate(IF_WITHIN_RANGE)
+            .deprecate().proposeAlternative(IF_WITHIN_RANGE)
             .action(ctx -> {
                 double value = ctx.value("Value").asNumber();
 
@@ -169,7 +168,7 @@ public enum ScriptConditionType {
         .category(ScriptActionCategory.LISTS)
         .arg("List", ScriptActionArgumentType.LIST)
         .arg("Value", ScriptActionArgumentType.ANY)
-        .deprecate(IF_LIST_CONTAINS)
+        .deprecate().proposeAlternative(IF_LIST_CONTAINS)
         .action(ctx -> {
             List<ScriptValue> list = ctx.value("List").asList();
             return list.stream().noneMatch(value -> value.valueEquals(ctx.value("Value")));
@@ -181,7 +180,7 @@ public enum ScriptConditionType {
         .category(ScriptActionCategory.TEXTS)
         .arg("Text", ScriptActionArgumentType.TEXT)
         .arg("Subtext", ScriptActionArgumentType.TEXT)
-        .deprecate(IF_TEXT_CONTAINS)
+        .deprecate().proposeAlternative(IF_TEXT_CONTAINS)
         .action(ctx -> {
             String text = ctx.value("Text").asText();
             String subtext = ctx.value("Subtext").asText();
@@ -194,7 +193,7 @@ public enum ScriptConditionType {
         .category(ScriptActionCategory.TEXTS)
         .arg("Text", ScriptActionArgumentType.TEXT)
         .arg("Subtext", ScriptActionArgumentType.TEXT)
-        .deprecate(IF_STARTS_WITH)
+        .deprecate().proposeAlternative(IF_STARTS_WITH)
         .action(ctx -> {
             String text = ctx.value("Text").asText();
             String subtext = ctx.value("Subtext").asText();
@@ -207,7 +206,7 @@ public enum ScriptConditionType {
         .category(ScriptActionCategory.TEXTS)
         .arg("Text", ScriptActionArgumentType.TEXT)
         .arg("Regex", ScriptActionArgumentType.TEXT)
-        .deprecate(IF_MATCHES_REGEX)
+        .deprecate().proposeAlternative(IF_MATCHES_REGEX)
         .action(ctx -> {
             String text = ctx.value("Text").asText();
             String regex = ctx.value("Regex").asText();
@@ -232,7 +231,7 @@ public enum ScriptConditionType {
         .category(ScriptActionCategory.DICTIONARIES)
         .arg("Dictionary", ScriptActionArgumentType.DICTIONARY)
         .arg("Key", ScriptActionArgumentType.TEXT)
-        .deprecate(IF_DICT_KEY_EXISTS)
+        .deprecate().proposeAlternative(IF_DICT_KEY_EXISTS)
         .action(ctx -> {
             HashMap<String, ScriptValue> dict = ctx.value("Dictionary").asDictionary();
             String key = ctx.value("Key").asText();
@@ -250,7 +249,7 @@ public enum ScriptConditionType {
     IF_GUI_CLOSED(builder -> builder.name("GUI Not Open")
         .description("Executes if no gui is open.")
         .icon(Items.BOOK)
-        .deprecate(IF_GUI_OPEN)
+        .deprecate().proposeAlternative(IF_GUI_OPEN)
         .category(ScriptActionCategory.MISC)
         .action(ctx -> {
             return DFScript.MC.currentScreen == null;
@@ -279,7 +278,7 @@ public enum ScriptConditionType {
         .icon(Items.BOOK)
         .category(ScriptActionCategory.MISC)
         .arg("Filename", ScriptActionArgumentType.TEXT)
-        .deprecate(IF_FILE_EXISTS)
+        .deprecate().proposeAlternative(IF_FILE_EXISTS)
         .action(ctx -> {
             String filename = ctx.value("Filename").asText();
             if (filename.matches("^[a-zA-Z\\d_\\-. ]+$")) {
@@ -318,11 +317,11 @@ public enum ScriptConditionType {
     private boolean glow = false;
     private Item icon = Items.STONE;
     private String name = "Unnamed Condition";
-    private boolean hasChildren = false;
     private ScriptActionCategory category = ScriptActionCategory.MISC;
-    private List<String> description = new ArrayList();
+    private final List<String> description = new ArrayList<>();
 
-    private ScriptConditionType deprecated = null; //if deprecated == null, the action is not deprecated
+    private ScriptNoticeLevel noticeLevel = ScriptNoticeLevel.NORMAL;
+    private ScriptConditionType alternative = null;
     private final ScriptActionArgumentList arguments = new ScriptActionArgumentList();
     ScriptConditionType(Consumer<ScriptConditionType> builder) {
         description.add("No description provided.");
@@ -331,7 +330,7 @@ public enum ScriptConditionType {
     public ItemStack getIcon(String prefix) {
         ItemStack item = new ItemStack(icon);
 
-        item.set(DataComponentTypes.CUSTOM_NAME, Text.literal(prefix + (prefix.equals("") ? "" : " ") + name)
+        item.set(DataComponentTypes.CUSTOM_NAME, Text.literal(prefix + (prefix.isEmpty() ? "" : " ") + name)
             .fillStyle(Style.EMPTY
                 .withColor(Formatting.WHITE)
                 .withItalic(false)));
@@ -352,18 +351,6 @@ public enum ScriptConditionType {
     public List<Text> getLore() {
         List<Text> lore = new ArrayList<>();
 
-        if(isDeprecated())
-        {
-            lore.add(Text.literal("This action is deprecated!")
-                    .fillStyle(Style.EMPTY
-                            .withColor(Formatting.RED)
-                            .withItalic(false)));
-            lore.add(Text.literal("Use '" + deprecated.getName() + "'")
-                    .fillStyle(Style.EMPTY
-                            .withColor(Formatting.RED)
-                            .withItalic(false)));
-        }
-
         for (String descriptionLine: description) {
             lore.add(Text.literal(descriptionLine)
                     .fillStyle(Style.EMPTY
@@ -380,12 +367,12 @@ public enum ScriptConditionType {
         return lore;
     }
 
-    public boolean isDeprecated() {
-        return deprecated != null;
-    }
+    public ScriptNotice getNotice(String prefix) {
+        if(alternative != null) {
+            return new ScriptNotice(noticeLevel, "Consider using '" + prefix + alternative.getName() + "' instead.");
+        }
 
-    public boolean hasChildren() {
-        return hasChildren;
+        return new ScriptNotice(noticeLevel);
     }
 
     public ScriptActionCategory getCategory() {
@@ -413,11 +400,6 @@ public enum ScriptConditionType {
         return this;
     }
 
-    private ScriptConditionType hasChildren(boolean hasChildren) {
-        this.hasChildren = hasChildren;
-        return this;
-    }
-
     private ScriptConditionType category(ScriptActionCategory category) {
         this.category = category;
         return this;
@@ -441,8 +423,18 @@ public enum ScriptConditionType {
         });
     }
 
-    public ScriptConditionType deprecate(ScriptConditionType newScriptConditionType) {
-        deprecated = newScriptConditionType;
+    public ScriptConditionType deprecate() {
+        noticeLevel = ScriptNoticeLevel.DEPRECATION;
+        return this;
+    }
+
+    public ScriptConditionType removeUsability() {
+        noticeLevel = ScriptNoticeLevel.UNUSABILITY;
+        return this;
+    }
+
+    public ScriptConditionType proposeAlternative(ScriptConditionType alternative) {
+        this.alternative = alternative;
 
         return this;
     }

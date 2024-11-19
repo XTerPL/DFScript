@@ -19,19 +19,14 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import javax.xml.crypto.Data;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ScriptBooleanSet extends ScriptParametrizedPart {
 
@@ -57,7 +52,6 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
 
         booleanSetIcon.set(DataComponentTypes.LORE, new LoreComponent(lore));
     }
-    boolean hasElse = false;
 
     ScriptCondition condition;
 
@@ -68,7 +62,7 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
 
     @Override
     public void create(ScriptPartRender render, Script script) {
-        render.addElement(new ScriptPartRenderIconElement(getName(), getIcon()));
+        render.addElement(new ScriptPartRenderIconElement(getName(), putNotices(getIcon())));
     }
 
     @Override
@@ -78,14 +72,12 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
             return;
         }
 
-        ScriptArgument variableArg = getArguments().get(0);
+        ScriptArgument variableArg = getArguments().getFirst();
 
-        if(!(variableArg instanceof ScriptVariableArgument)) {
+        if(!(variableArg instanceof ScriptVariableArgument variable)) {
             ChatUtil.error("You need to add a VARIABLE argument to Set to Condition.");
             return;
         }
-
-        ScriptVariableArgument variable = (ScriptVariableArgument) variableArg;
 
         List<ScriptArgument> conditionArguments = new ArrayList<>();
         for(int i = 1; i < getArguments().size(); i++) {
@@ -132,6 +124,19 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
         icon.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         return icon;
+    }
+
+    @Override
+    public ArrayList<ScriptNotice> getNotices() {
+        var notices = super.getNotices();
+
+        ScriptNotice typeNotice = condition.getNotice(booleanSetName + ": ");
+
+        if(typeNotice.getLevel() != ScriptNoticeLevel.NORMAL) {
+            notices.add(typeNotice);
+        }
+
+        return notices;
     }
 
     @Override

@@ -17,19 +17,22 @@ import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import io.github.techstreet.dfscript.script.repetitions.ScriptBuiltinRepetition;
 import io.github.techstreet.dfscript.script.repetitions.ScriptRepetitionType;
 import io.github.techstreet.dfscript.script.repetitions.ScriptWhile;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class ScriptPart implements ScriptRunnable {
 
     public abstract void create(ScriptPartRender render, Script script);
 
-    public boolean isDeprecated() {
-        return false;
+    public ArrayList<ScriptNotice> getNotices() {
+        return new ArrayList<>();
     }
 
     public List<ContextMenuButton> getContextMenu() {
@@ -37,6 +40,33 @@ public abstract class ScriptPart implements ScriptRunnable {
     }
 
     public abstract ItemStack getIcon();
+
+    public ItemStack putNotices(ItemStack current) {
+        ArrayList<Text> lore = new ArrayList<>();
+
+        if (current.getComponents().contains(DataComponentTypes.LORE)) {
+            lore = new ArrayList<>(Objects.requireNonNull(current.getComponents().get(DataComponentTypes.LORE)).lines());
+        }
+
+        ArrayList<ScriptNotice> notices = getNotices();
+
+        notices.sort(new ScriptNoticeComparator());
+
+        for(ScriptNotice notice : notices) {
+            for(String line : notice.getMessage(getNoticeDescriptor()).reversed()) {
+                lore.addFirst(Text.literal(line).setStyle(notice.getTextStyle()));
+            }
+        }
+
+        ItemStack result = current.copy();
+        result.set(DataComponentTypes.LORE, new LoreComponent(lore));
+
+        return result;
+    }
+
+    protected String getNoticeDescriptor() {
+        return "part";
+    }
 
     public abstract String getName();
 

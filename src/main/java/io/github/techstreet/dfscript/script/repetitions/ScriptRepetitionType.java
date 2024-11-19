@@ -1,5 +1,7 @@
 package io.github.techstreet.dfscript.script.repetitions;
 
+import io.github.techstreet.dfscript.script.ScriptNotice;
+import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument.ScriptActionArgumentType;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
@@ -11,12 +13,9 @@ import io.github.techstreet.dfscript.script.values.ScriptValue;
 import io.github.techstreet.dfscript.util.chat.ChatUtil;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -111,9 +110,10 @@ public enum ScriptRepetitionType {
     private String name = "Unnamed Action";
     private boolean hasChildren = false;
     private ScriptActionCategory category = ScriptActionCategory.MISC;
-    private List<String> description = new ArrayList();
+    private final List<String> description = new ArrayList<>();
 
-    private ScriptRepetitionType deprecated = null; //if deprecated == null, the action is not deprecated
+    private ScriptNoticeLevel noticeLevel = ScriptNoticeLevel.NORMAL;
+    private ScriptRepetitionType alternative = null;
     private final ScriptActionArgumentList arguments = new ScriptActionArgumentList();
     ScriptRepetitionType(Consumer<ScriptRepetitionType> builder) {
         description.add("No description provided.");
@@ -129,16 +129,15 @@ public enum ScriptRepetitionType {
 
         List<Text> lore = new ArrayList<>();
 
-        if(isDeprecated())
+        if(noticeLevel.hasMessage())
         {
-            lore.add(Text.literal("This action is deprecated!")
-                    .fillStyle(Style.EMPTY
-                            .withColor(Formatting.RED)
-                            .withItalic(false)));
-            lore.add(Text.literal("Use '" + deprecated.getName() + "'")
-                    .fillStyle(Style.EMPTY
-                            .withColor(Formatting.RED)
-                            .withItalic(false)));
+            lore.add(Text.literal(noticeLevel.getMessage("loop"))
+                    .fillStyle(noticeLevel.getTextStyle()));
+
+            if(alternative != null) {
+                lore.add(Text.literal("Use '" + alternative.getName() + "'")
+                        .fillStyle(noticeLevel.getTextStyle()));
+            }
         }
 
         for (String descriptionLine: description) {
@@ -164,12 +163,12 @@ public enum ScriptRepetitionType {
         return name;
     }
 
-    public boolean isDeprecated() {
-        return deprecated != null;
-    }
+    public ScriptNotice getNotice() {
+        if(alternative != null) {
+            return new ScriptNotice(noticeLevel, "Consider using '" + alternative.getName() + "' instead.");
+        }
 
-    public boolean hasChildren() {
-        return hasChildren;
+        return new ScriptNotice(noticeLevel);
     }
 
     public ScriptActionCategory getCategory() {
@@ -197,11 +196,6 @@ public enum ScriptRepetitionType {
         return this;
     }
 
-    private ScriptRepetitionType hasChildren(boolean hasChildren) {
-        this.hasChildren = hasChildren;
-        return this;
-    }
-
     private ScriptRepetitionType category(ScriptActionCategory category) {
         this.category = category;
         return this;
@@ -225,8 +219,18 @@ public enum ScriptRepetitionType {
         });
     }
 
-    public ScriptRepetitionType deprecate(ScriptRepetitionType newScriptRepetitionType) {
-        deprecated = newScriptRepetitionType;
+    public ScriptRepetitionType deprecate() {
+        noticeLevel = ScriptNoticeLevel.DEPRECATION;
+        return this;
+    }
+
+    public ScriptRepetitionType removeUsability() {
+        noticeLevel = ScriptNoticeLevel.UNUSABILITY;
+        return this;
+    }
+
+    public ScriptRepetitionType proposeAlternative(ScriptRepetitionType alternative) {
+        this.alternative = alternative;
 
         return this;
     }
