@@ -72,8 +72,7 @@ public enum ScriptClientValueArgument implements ScriptArgument {
     CLIPBOARD("Clipboard", "The current text on the clipboard", Items.PAPER, ScriptActionArgumentType.TEXT, (task) -> new ScriptTextValue(DFScript.MC.keyboard.getClipboard())),
 
     MAIN_HAND_ITEM("MainHandItem","The item in the players main hand.", Items.STONE_BUTTON, ScriptActionArgumentType.DICTIONARY,
-            (task) -> ScriptValueItem.valueFromItem(DFScript.MC.player.getMainHandStack())
-    ),
+            (task) -> ScriptValueItem.valueFromItem(DFScript.MC.player.getMainHandStack())),
 
     OFF_HAND_ITEM("OffHandItem","The item in the players off hand.", Items.OAK_BUTTON, ScriptActionArgumentType.DICTIONARY,
             (task) -> ScriptValueItem.valueFromItem(DFScript.MC.player.getOffHandStack())
@@ -224,6 +223,10 @@ public enum ScriptClientValueArgument implements ScriptArgument {
         }
 
         return new ScriptNotice(noticeLevel);
+    }
+
+    public String getNoticeDescriptor() {
+        return "client value";
     }
 
     private ScriptClientValueArgument valueGetter(ScriptActionArgumentType type, Function<ScriptTask, ScriptValue> valueGetter) {

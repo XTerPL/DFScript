@@ -9,12 +9,14 @@ import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptManager;
 import io.github.techstreet.dfscript.script.VirtualScript;
 import io.github.techstreet.dfscript.script.util.UploadResponse;
-import io.github.techstreet.dfscript.util.Regex;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.apache.commons.codec.binary.Base64;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.io.*;
@@ -40,6 +42,10 @@ public class ScriptListScreen extends CScreen {
             MutableText text = Text.literal(s.getName());
             VirtualScript script = ScriptAddScreen.scriptHash.get(s.getServer());
 
+            boolean blocked = s.blocked();
+
+            boolean owned = (s.getOwner() != null && s.getOwner().replaceAll("-", "").equals(DFScript.PLAYER_UUID.replaceAll("-", "")));
+
             if (script != null) {
                 text = Text.literal((script.isApproved() ? "⭐ " : "") + s.getName());
 
@@ -48,7 +54,7 @@ public class ScriptListScreen extends CScreen {
                 }
             }
 
-            if (s.disabled()) {
+            if (s.disabled() || blocked) {
                 text = text.formatted(Formatting.STRIKETHROUGH);
             }
 
@@ -58,7 +64,33 @@ public class ScriptListScreen extends CScreen {
                 @Override
                 public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
                     Rectangle b = getBounds();
-                    context.fill(b.x, b.y, b.x + b.width, b.y + b.height, 0x33000000);
+                    context.fill(b.x, b.y, b.x + b.width, b.y + b.height,
+                            blocked ? 0x33FF0000 : 0x33000000);
+                }
+
+                @Override
+                public void renderOverlay(DrawContext context, int mouseX, int mouseY, float tickDelta) {
+                    MatrixStack stack = context.getMatrices();
+                    Rectangle rect = new Rectangle(x, y,width, height);
+
+                    if (rect.contains(mouseX, mouseY) && blocked) {
+                        stack.push();
+                        stack.translate(mouseX, mouseY, 0);
+                        stack.scale(0.5f, 0.5f, 1f);
+                        GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+                        List<Text> tooltip = List.of(
+                                Text.literal("This script contains some parts that were removed from use!")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.RED)),
+                                Text.literal(
+                                        owned ? "Resolve the problems in the script to enable it again."
+                                              : "Contact the script's creator and ask them to resolve the problems in the script.")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.RED))
+                        );
+
+                        context.drawTooltip(DFScript.MC.textRenderer, tooltip, 0, 0);
+                        stack.pop();
+                    }
                 }
 
                 @Override
@@ -72,11 +104,11 @@ public class ScriptListScreen extends CScreen {
 
             if (allowEditAndUpload) {
                 // Delete Button
-                CButton delete = new CTexturedButton(20 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":delete.png", DFScript.MOD_ID + ":delete_highlight.png", () -> {
+                CButton delete = new CTexturedButton(20 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":delete.png", () -> {
                     DFScript.MC.setScreen(new ScriptDeletionScreen(s));
                 });
 
-                if (!Objects.equals(s.getServer(), "None") && s.getOwner() != null && s.getOwner().equals(DFScript.PLAYER_UUID)) {
+                if (!Objects.equals(s.getServer(), "None") && owned) {
                     delete.setOnClick(() -> {
                         DFScript.MC.setScreen(new ScriptMessageScreen(new ScriptListScreen(allowEditAndUpload), "That script must be removed from the server to delete it!!"));
                     });
@@ -87,14 +119,17 @@ public class ScriptListScreen extends CScreen {
 
             // Enable or Disable Button
             CButton enableDisable;
-            if (s.disabled()) {
-                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":enable.png", DFScript.MOD_ID + ":enable_highlight.png", () -> {
+            if(blocked) {
+                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":warning.png", () -> {});
+                enableDisable.setDisabled(true);
+            } else if (s.disabled()) {
+                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":enable.png", () -> {
                     s.setDisabled(false);
                     ScriptManager.getInstance().saveScript(s);
                     DFScript.MC.setScreen(new ScriptListScreen(allowEditAndUpload));
                 });
             } else {
-                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":disable.png", DFScript.MOD_ID + ":disable_highlight.png", () -> {
+                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":disable.png", () -> {
                     s.setDisabled(true);
                     ScriptManager.getInstance().saveScript(s);
                     DFScript.MC.setScreen(new ScriptListScreen(allowEditAndUpload));
@@ -104,16 +139,16 @@ public class ScriptListScreen extends CScreen {
             panel.add(enableDisable);
 
             if(allowEditAndUpload) {
-                if (s.getOwner() != null && s.getOwner().replaceAll("-", "").equals(DFScript.PLAYER_UUID.replaceAll("-", ""))) {
+                if (owned) {
                     // Edit Button
-                    CButton edit = new CTexturedButton(addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":wrench.png", DFScript.MOD_ID + ":wrench_highlight.png", () -> {
+                    CButton edit = new CTexturedButton(addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":wrench.png", () -> {
                         DFScript.MC.setScreen(new ScriptEditScreen(s));
                     });
 
                     panel.add(edit);
 
                     // Upload or Remove Button
-                    CButton upload = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":upload.png", DFScript.MOD_ID + ":upload_highlight.png", () -> {
+                    CButton upload = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":upload.png", () -> {
                         try {
                             // Encode the script JSON to GZIP Base64
                             byte[] bytes = Files.readAllBytes(s.getFile().toPath());
@@ -165,7 +200,7 @@ public class ScriptListScreen extends CScreen {
                     });
 
                     if (!Objects.equals(s.getServer(), "None")) {
-                        upload = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":unupload.png", DFScript.MOD_ID + ":unupload_highlight.png", () -> {
+                        upload = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":unupload.png", () -> {
                             try {
                                 // Remove the script to the server
                                 URL url = new URL("https://DFScript-Server.techstreetdev.repl.co/scripts/remove/");
@@ -208,7 +243,7 @@ public class ScriptListScreen extends CScreen {
                 }
                 else {
                     //Script Settings Button
-                    CButton settings = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":settings.png", DFScript.MOD_ID + ":settings_highlight.png", () -> {
+                    CButton settings = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":settings.png", () -> {
                         DFScript.MC.setScreen(new ScriptSettingsScreen(s, false));
                     });
 

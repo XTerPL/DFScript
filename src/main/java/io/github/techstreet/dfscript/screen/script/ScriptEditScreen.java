@@ -2,7 +2,6 @@ package io.github.techstreet.dfscript.screen.script;
 
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.screen.CReloadableScreen;
-import io.github.techstreet.dfscript.screen.CScreen;
 import io.github.techstreet.dfscript.screen.ContextMenuButton;
 import io.github.techstreet.dfscript.screen.widget.*;
 import io.github.techstreet.dfscript.script.Script;
@@ -13,7 +12,6 @@ import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -56,7 +54,7 @@ public class ScriptEditScreen extends CReloadableScreen {
         CText name = new CText(5,y+2,Text.literal(script.getName()),0,1,false,false);
         panel.add(name);
 
-        CButton settings = new CTexturedButton(120-8, y, 8, 8, DFScript.MOD_ID + ":settings.png", DFScript.MOD_ID + ":settings_highlight.png", () -> {
+        CButton settings = new CTexturedButton(120-8, y, 8, 8, DFScript.MOD_ID + ":settings.png", () -> {
             DFScript.MC.setScreen(new ScriptSettingsScreen(this.script, true));
         });
         panel.add(settings);
@@ -151,6 +149,7 @@ public class ScriptEditScreen extends CReloadableScreen {
     @Override
     public void close() {
         scroll = panel.getScroll();
+        script.updateBlocked();
         ScriptManager.getInstance().saveScript(script);
         DFScript.MC.setScreen(new ScriptListScreen(true));
     }

@@ -5,14 +5,12 @@ import io.github.techstreet.dfscript.DFScript;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
@@ -78,7 +76,7 @@ public class RenderUtil {
         int y1 = 0;
         int x2 = 200;
         int y2 = y1 + 20;
-        renderContinuousTexture(context, x, y, width, height, image, x1, y1, x2, y2, textureWidth, textureHeight, padding,1);
+        renderContinuousTexture(context, x, y, width, height, imageUsed, x1, y1, x2, y2, textureWidth, textureHeight, padding,1);
     }
 
     public static void renderContinuousTexture(DrawContext context, int x, int y, int width, int height, String image, int tx1, int ty1, int tx2, int ty2, int textureWidth, int textureHeight, int padding,double scale) {
@@ -141,8 +139,8 @@ public class RenderUtil {
     }
 
     public static void pushScissor(int x, int y, int width, int height) {
-        if (scissorStack.size() != 0) {
-            Scissor state = scissorStack.get(scissorStack.size() - 1);
+        if (!scissorStack.isEmpty()) {
+            Scissor state = scissorStack.getLast();
             x = Math.max(x, state.x);
             y = Math.max(y, state.y);
             width = Math.min(width, state.x + state.width - x);
@@ -156,9 +154,9 @@ public class RenderUtil {
     }
 
     public static void popScissor() {
-        scissorStack.remove(scissorStack.size() - 1);
-        if (scissorStack.size() > 0) {
-            Scissor s = scissorStack.get(scissorStack.size() - 1);
+        scissorStack.removeLast();
+        if (!scissorStack.isEmpty()) {
+            Scissor s = scissorStack.getLast();
             GL11.glScissor(s.x, DFScript.MC.getWindow().getHeight() - s.y - s.height, s.width, s.height);
         } else {
             GL11.glDisable(GL11.GL_SCISSOR_TEST);

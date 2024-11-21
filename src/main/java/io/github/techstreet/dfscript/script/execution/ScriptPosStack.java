@@ -2,7 +2,6 @@ package io.github.techstreet.dfscript.script.execution;
 
 import io.github.techstreet.dfscript.script.ScriptScopeParent;
 import io.github.techstreet.dfscript.script.ScriptSnippet;
-import io.github.techstreet.dfscript.script.event.ScriptFunction;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ public class ScriptPosStack {
         {
             return;
         }
-        ScriptPosStackElement element = data.remove(data.size() - 1);
+        ScriptPosStackElement element = data.removeLast();
     }
 
     public ScriptPosStackElement peek() { return peek(0); }

@@ -33,6 +33,7 @@ import java.awt.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ScriptSnippet extends ArrayList<ScriptPart> {
     boolean hidden = false;
@@ -108,10 +109,8 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
                         Rectangle b = getBounds();
                         int color = finalTopLevel.getPartColor(b.contains(mouseX, mouseY));
 
-                        if(color > 0x00FFFFFF) {
-                            for(var renderButtonPos : render.getButtonPositions()) {
-                                context.fill(b.x, renderButtonPos.y()-1, b.x + b.width, renderButtonPos.y()-1 + renderButtonPos.height(), color);
-                            }
+                        for(var renderButtonPos : render.getButtonPositions()) {
+                            context.fill(b.x, renderButtonPos.y()-1, b.x + b.width, renderButtonPos.y()-1 + renderButtonPos.height(), color);
                         }
                     }
 
@@ -251,7 +250,7 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
     public void replaceFunction(String oldFunction, String newFunction) {
         for(ScriptPart part : this) {
             if(part instanceof ScriptFunctionCall fc) {
-                if(fc.getFunctionName() == oldFunction) {
+                if(Objects.equals(fc.getFunctionName(), oldFunction)) {
                     fc.setFunction(newFunction);
                 }
             }
@@ -267,7 +266,7 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
         while(index < this.size()) {
             ScriptPart part = this.get(index);
             if(part instanceof ScriptFunctionCall fc) {
-                if(fc.getFunctionName() == function) {
+                if(Objects.equals(fc.getFunctionName(), function)) {
                     this.remove(index);
                     continue;
                 }

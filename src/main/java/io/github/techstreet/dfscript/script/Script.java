@@ -46,6 +46,7 @@ public class Script {
     private final ScriptContext context = new ScriptContext(this);
     private File file;
     private boolean disabled;
+    private boolean blocked = false;
 
     public Script(String name, String owner, String server, List<ScriptHeader> headers, boolean disabled, int version) {
         this.name = name;
@@ -236,16 +237,26 @@ public class Script {
     }
 
     public boolean blocked() {
+        return blocked;
+    }
+
+    public void block() {
+        setDisabled(true);
+        blocked = true;
+    }
+
+    public void updateBlocked() {
         for(ScriptHeader header : headers) {
             for(ScriptSnippet snippet : header.container().snippets)
             {
                 if(snippet.blocked()) {
-                    return true;
+                    block();
+                    return;
                 }
             }
         }
 
-        return false;
+        blocked = false;
     }
 
     public void setDisabled(boolean b) {

@@ -93,7 +93,7 @@ public class ScriptEditPartScreen extends CReloadableScreen {
         int y = 15;
         int index = 0;
         for (ScriptArgument arg : action.getArguments()) {
-            ItemStack icon = arg.getArgIcon();
+            ItemStack icon = arg.putNotices(arg.getArgIcon());
             Text countText = arg.getArgIconText();
             String text = arg.getArgText();
 
@@ -104,14 +104,12 @@ public class ScriptEditPartScreen extends CReloadableScreen {
 
             ScriptNotice notice = arg.getNotice();
 
-            panel.add(new CButton(5, y-1, 85, 10, "",() -> {}) {
+            panel.add(new CButton(5, y-1, 80, 10, "",() -> {}) {
                 @Override
                 public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
                     Rectangle b = getBounds();
                     int color = notice.getPartColor(b.contains(mouseX, mouseY));
-                    if (color > 0x00FFFFFF) {
-                        context.fill(b.x, b.y, b.x + b.width, b.y + b.height, color);
-                    }
+                    context.fill(b.x, b.y, b.x + b.width, b.y + b.height, color);
                 }
 
                 @Override

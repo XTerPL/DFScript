@@ -5,8 +5,6 @@ import io.github.techstreet.dfscript.screen.CScreen;
 import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptParametrizedPart;
-import io.github.techstreet.dfscript.script.ScriptPart;
-import io.github.techstreet.dfscript.script.action.ScriptAction;
 import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 
@@ -33,6 +31,7 @@ public class ScriptAddClientValueScreen extends CScreen {
             item.setClickListener((btn) -> {
                 if(overwrite != null) action.getArguments().remove(insertIndex);
                 action.getArguments().add(insertIndex, arg);
+                if (arg.getNotice().disablesScript()) script.block();
                 DFScript.MC.setScreen(new ScriptEditPartScreen(action, script, header));
             });
             widgets.add(item);

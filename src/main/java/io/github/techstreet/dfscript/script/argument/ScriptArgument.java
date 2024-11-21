@@ -32,6 +32,14 @@ public interface ScriptArgument {
         return new ScriptNotice(ScriptNoticeLevel.NORMAL);
     }
 
+    default String getNoticeDescriptor() {
+        return "argument";
+    }
+
+    default ItemStack putNotices(ItemStack current) {
+        return ScriptNotice.putNotices(current, getNoticeDescriptor(), getNotice());
+    }
+
     default List<ContextMenuButton> getContextMenu() {
         return new ArrayList<>();
     }

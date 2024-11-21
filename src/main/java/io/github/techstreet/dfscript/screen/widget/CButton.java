@@ -67,7 +67,7 @@ public class CButton implements CWidget {
     public boolean mouseClicked(double x, double y, int button) {
         Rectangle rect = new Rectangle(this.x, this.y, width, height);
 
-        if (rect.contains(x, y)) {
+        if (rect.contains(x, y) && !disabled) {
             DFScript.MC.getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.UI_BUTTON_CLICK.value(), 1f,1f));
             onClick.run();
             return true;
@@ -95,5 +95,9 @@ public class CButton implements CWidget {
 
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
+    }
+
+    public boolean isDisabled() {
+        return this.disabled;
     }
 }

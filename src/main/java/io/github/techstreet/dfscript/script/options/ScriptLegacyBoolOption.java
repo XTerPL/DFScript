@@ -31,10 +31,10 @@ public class ScriptLegacyBoolOption implements ScriptOption {
 
     @Override
     public int create(CScrollPanel panel, int x, int y, int width) {
-        CTexturedButton button = new CTexturedButton(x, y, 8, 8, getTexture(), getHighlightedTexture(), null);
+        CTexturedButton button = new CTexturedButton(x, y, 8, 8, getTexture(), null);
         button.setOnClick(() -> {
             value = !value;
-            button.setTexture(getTexture(), getHighlightedTexture());
+            button.setTexture(getTexture());
         });
         panel.add(button);
 
@@ -43,9 +43,6 @@ public class ScriptLegacyBoolOption implements ScriptOption {
 
     private String getTexture() {
         return DFScript.MOD_ID + (value ? ":on_button.png" : ":off_button.png");
-    }
-    private String getHighlightedTexture() {
-        return DFScript.MOD_ID + (value ? ":on_button_highlight.png" : ":disable_highlight.png");
     }
 
     @Override

@@ -115,15 +115,17 @@ public class ScriptManager implements Loadable {
                                 Path p = (Path) event.context();
                                 Path absolute = FileUtil.folder("Scripts").resolve(p);
                                 if (absolute.getParent().equals(FileUtil.folder("Scripts")) && !absolute.toFile().isDirectory()) {
-                                    loadScript(absolute.toFile());
-                                    ChatUtil.sendMessage("Script loaded: " + p.getFileName(), ChatType.INFO_BLUE);
+                                    if(loadScript(absolute.toFile())) {
+                                        ChatUtil.sendMessage("Script loaded: " + p.getFileName(), ChatType.INFO_BLUE);
+                                    }
                                 }
                             } else if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
                                 Path p = (Path) event.context();
                                 Path absolute = FileUtil.folder("Scripts").resolve(p);
                                 if (absolute.getParent().equals(FileUtil.folder("Scripts"))) {
-                                    unloadScript(absolute.toFile());
-                                    ChatUtil.sendMessage("Script unloaded: " + p.getFileName(), ChatType.INFO_BLUE);
+                                    if(unloadScript(absolute.toFile())) {
+                                        ChatUtil.sendMessage("Script unloaded: " + p.getFileName(), ChatType.INFO_BLUE);
+                                    }
                                 }
                             }
                         }
@@ -153,14 +155,15 @@ public class ScriptManager implements Loadable {
         });
     }
 
-    private void unloadScript(File file) {
+    private boolean unloadScript(File file) {
         for (Script s : scripts) {
             if (s.getFile().getAbsoluteFile().equals(file.getAbsoluteFile())) {
                 s.setDisabled(true);
                 scripts.remove(s);
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     private void loadScripts() {
@@ -184,15 +187,15 @@ public class ScriptManager implements Loadable {
         handleEvent(new ScriptStartUpEvent());
     }
 
-    private void loadScript(File file) {
+    private boolean loadScript(File file) {
         if (scripts.stream().anyMatch(s -> s.getFile().getAbsoluteFile().equals(file.getAbsoluteFile()))) {
-            return;
+            return false;
         }
 
         try {
             if (file.isDirectory()) {
                 LOGGER.info("Skipped directory: " + file.getName());
-                return;
+                return false;
             }
 
             String content = FileUtil.readFile(file.toPath());
@@ -203,12 +206,19 @@ public class ScriptManager implements Loadable {
 
             if (s.getVersion() != Script.scriptVersion) throw new RuntimeException("this script uses version " + s.getVersion() + " when this version of DFScript uses version " + Script.scriptVersion + "!");
 
+            s.updateBlocked();
+            if(s.blocked()) {
+                s.setDisabled(true);
+            }
+
             scripts.add(s);
             LOGGER.info("Loaded script: " + file.getName());
+            return true;
         } catch (Exception e) {
             LOGGER.error("Failed to load script: " + file.getName());
 //            e.printStackTrace();
         }
+        return false;
     }
 
     public void saveScript(Script script) {
