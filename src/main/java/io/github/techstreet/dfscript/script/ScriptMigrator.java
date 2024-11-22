@@ -2,6 +2,7 @@ package io.github.techstreet.dfscript.script;
 
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
+import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
 import io.github.techstreet.dfscript.script.options.ScriptOptionEnum;
 
 public class ScriptMigrator {
@@ -46,6 +47,21 @@ public class ScriptMigrator {
 
         if(script.getVersion() == 6) {
             script.setVersion(7);
+        }
+
+        if(script.getVersion() == 7) {
+            script.replaceAction(ScriptActionType.ADD_MENU_ITEM, ScriptActionType.ADD_MENU_ITEM_OLD);
+            script.replaceAction(ScriptActionType.GIVE_ITEM, ScriptActionType.GIVE_ITEM_OLD);
+            script.replaceAction(ScriptActionType.SET_HOTBAR_ITEM, ScriptActionType.SET_HOTBAR_ITEM_OLD);
+
+            script.replaceClientValue(ScriptClientValueArgument.ARMOR, ScriptClientValueArgument.ARMOR_OLD);
+            script.replaceClientValue(ScriptClientValueArgument.HOTBAR_ITEMS, ScriptClientValueArgument.HOTBAR_ITEMS_OLD);
+            script.replaceClientValue(ScriptClientValueArgument.MAIN_INVENTORY, ScriptClientValueArgument.MAIN_INVENTORY_OLD);
+            script.replaceClientValue(ScriptClientValueArgument.FULL_INVENTORY, ScriptClientValueArgument.FULL_INVENTORY_OLD);
+            script.replaceClientValue(ScriptClientValueArgument.MAIN_HAND_ITEM, ScriptClientValueArgument.MAIN_HAND_ITEM_OLD);
+            script.replaceClientValue(ScriptClientValueArgument.OFF_HAND_ITEM, ScriptClientValueArgument.OFF_HAND_ITEM_OLD);
+
+            script.setVersion(8);
         }
 
         if (previousVer != script.getVersion()) {

@@ -35,6 +35,7 @@ public enum ScriptActionCategory {
     LISTS("Lists", Items.BOOKSHELF),
     TEXTS("Texts", Items.BOOK),
     DICTIONARIES("Dictionaries", Items.ENDER_CHEST),
+    ITEMS("Items", Items.ITEM_FRAME),
 
     MENUS("Menus", Items.PAINTING),
 

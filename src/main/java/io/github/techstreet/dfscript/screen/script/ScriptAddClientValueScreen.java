@@ -27,6 +27,7 @@ public class ScriptAddClientValueScreen extends CScreen {
         int x = 5;
         int y = 5;
         for (ScriptClientValueArgument arg : ScriptClientValueArgument.values()) {
+            if (arg.getNotice().isHidden()) continue;
             CItem item = new CItem(x, y, arg.getIcon());
             item.setClickListener((btn) -> {
                 if(overwrite != null) action.getArguments().remove(insertIndex);

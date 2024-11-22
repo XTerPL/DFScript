@@ -30,7 +30,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class Script {
-    public static int scriptVersion = 7;
+    public static int scriptVersion = 8;
 
     private String name;
     private String owner;

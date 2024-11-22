@@ -36,6 +36,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.s2c.play.CommandTreeS2CPacket;
+import net.minecraft.registry.Registries;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
@@ -593,6 +594,45 @@ public enum ScriptActionType {
             dict.remove(key);
             ctx.setVariable("Dictionary", new ScriptDictionaryValue(dict));
         })),
+
+    CREATE_ITEM(builder -> builder.name("Create Item")
+            .description("Creates an Item value from an item type and a stack size.")
+            .icon(Items.CRAFTING_TABLE)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item Type", ScriptActionArgumentType.TEXT)
+            .arg("Stack Size", ScriptActionArgumentType.NUMBER, b -> b.defaultValue(1))
+            .arg("Max Stack Size", ScriptActionArgumentType.NUMBER, b -> b.optional(true))
+            .action(ctx -> {
+                String id = ctx.value("Item Type").asText();
+                int stackSize = (int) ctx.value("Stack Size").asNumber();
+
+                Identifier itemId = null;
+                try {
+                    itemId = new Identifier(id);
+                }
+                catch(Exception err) {
+                    err.printStackTrace();
+                    OverlayManager.getInstance().add("Incorrect identifier: " + id);
+                    return;
+                }
+
+                if(!Registries.ITEM.containsId(itemId)) {
+                    OverlayManager.getInstance().add("Unknown item: " + id);
+                    return;
+                }
+
+                ItemStack item = new ItemStack(Registries.ITEM.get(itemId));
+
+                if(ctx.argMap().containsKey("Max Stack Size")) {
+                    int maxStackSize = (int) ctx.value("Stack Size").asNumber();
+                    item.set(DataComponentTypes.MAX_STACK_SIZE, maxStackSize);
+                }
+
+                item.setCount(stackSize);
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
 
     ROUND_NUM(builder -> builder.name("Round Number")
         .description("Rounds a number.")
@@ -1164,10 +1204,10 @@ public enum ScriptActionType {
         .icon(Items.IRON_AXE)
         .category(ScriptActionCategory.ACTIONS)
         .arg("Slot", ScriptActionArgumentType.NUMBER)
-        .arg("Item", ScriptActionArgumentType.DICTIONARY)
+        .arg("Item", ScriptActionArgumentType.ITEM)
         .action(ctx -> {
             int slot = (int) ctx.value("Slot").asNumber();
-            ItemStack item = ScriptValueItem.itemFromValue(ctx.value("Item"));
+            ItemStack item = ctx.value("Item").asItem();
 
             if (io.github.techstreet.dfscript.DFScript.MC.interactionManager.getCurrentGameMode() == GameMode.CREATIVE) {
                 io.github.techstreet.dfscript.DFScript.MC.interactionManager.clickCreativeStack(item, slot + 36);
@@ -1177,13 +1217,22 @@ public enum ScriptActionType {
             }
         })),
 
+    SET_HOTBAR_ITEM_OLD(builder -> builder.name("Set Hotbar Item (Old)")
+            .description("Sets a hotbar item. (Requires Creative)")
+            .icon(Items.IRON_AXE)
+            .category(ScriptActionCategory.ACTIONS)
+            .arg("Slot", ScriptActionArgumentType.NUMBER)
+            .arg("Item", ScriptActionArgumentType.DICTIONARY)
+            .removeUsability().proposeAlternative(SET_HOTBAR_ITEM)
+    ),
+
     GIVE_ITEM(builder -> builder.name("Give Item")
         .description("Gives the player an item. (Requires Creative)")
         .icon(Items.CHEST)
         .category(ScriptActionCategory.ACTIONS)
-        .arg("Item", ScriptActionArgumentType.DICTIONARY)
+        .arg("Item", ScriptActionArgumentType.ITEM)
         .action(ctx -> {
-            ItemStack item = ScriptValueItem.itemFromValue(ctx.value("Item"));
+            ItemStack item = ctx.value("Item").asItem();
 
             if (io.github.techstreet.dfscript.DFScript.MC.interactionManager.getCurrentGameMode() == GameMode.CREATIVE) {
                 ItemUtil.giveCreativeItem(item,true);
@@ -1191,6 +1240,14 @@ public enum ScriptActionType {
                 OverlayManager.getInstance().add("Unable to set give item! (Not in creative mode)");
             }
         })),
+
+    GIVE_ITEM_OLD(builder -> builder.name("Give Item (Old)")
+            .description("Gives the player an item. (Requires Creative)")
+            .icon(Items.CHEST)
+            .category(ScriptActionCategory.ACTIONS)
+            .arg("Item", ScriptActionArgumentType.DICTIONARY)
+            .removeUsability().proposeAlternative(GIVE_ITEM)
+    ),
 
     DRAW_TEXT(builder -> builder.name("Draw Text")
         .description("Draws text on the screen. (Only works in the overlay event)")
@@ -1273,12 +1330,12 @@ public enum ScriptActionType {
         .category(ScriptActionCategory.MENUS)
         .arg("X", ScriptActionArgumentType.NUMBER)
         .arg("Y", ScriptActionArgumentType.NUMBER)
-        .arg("Item", ScriptActionArgumentType.DICTIONARY)
+        .arg("Item", ScriptActionArgumentType.ITEM)
         .arg("Identifier", ScriptActionArgumentType.TEXT)
         .action(ctx -> {
             int x = (int) ctx.value("X").asNumber();
             int y = (int) ctx.value("Y").asNumber();
-            ItemStack item = ScriptValueItem.itemFromValue(ctx.value("Item"));
+            ItemStack item = ctx.value("Item").asItem();
             String identifier = ctx.value("Identifier").asText();
 
             DFScript.MC.send(() -> {
@@ -1293,6 +1350,17 @@ public enum ScriptActionType {
                 }
             });
         })),
+
+    ADD_MENU_ITEM_OLD(builder -> builder.name("Add Menu Item (Old)")
+            .description("Adds an item to an open custom menu.")
+            .icon(Items.ITEM_FRAME)
+            .category(ScriptActionCategory.MENUS)
+            .arg("X", ScriptActionArgumentType.NUMBER)
+            .arg("Y", ScriptActionArgumentType.NUMBER)
+            .arg("Item", ScriptActionArgumentType.DICTIONARY)
+            .arg("Identifier", ScriptActionArgumentType.TEXT)
+            .removeUsability().proposeAlternative(ADD_MENU_ITEM)
+    ),
 
     ADD_MENU_TEXT(builder -> builder.name("Add Menu Text")
         .description("Adds text to an open custom menu.")

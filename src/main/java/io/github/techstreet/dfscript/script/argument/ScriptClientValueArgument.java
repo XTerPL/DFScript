@@ -71,44 +71,86 @@ public enum ScriptClientValueArgument implements ScriptArgument {
 
     CLIPBOARD("Clipboard", "The current text on the clipboard", Items.PAPER, ScriptActionArgumentType.TEXT, (task) -> new ScriptTextValue(DFScript.MC.keyboard.getClipboard())),
 
-    MAIN_HAND_ITEM("MainHandItem","The item in the players main hand.", Items.STONE_BUTTON, ScriptActionArgumentType.DICTIONARY,
-            (task) -> ScriptValueItem.valueFromItem(DFScript.MC.player.getMainHandStack())),
+    MAIN_HAND_ITEM("MainHandItem","The item in the players main hand.", Items.STONE_BUTTON, ScriptActionArgumentType.ITEM,
+            (task) -> new ScriptItemValue(DFScript.MC.player.getMainHandStack())),
 
-    OFF_HAND_ITEM("OffHandItem","The item in the players off hand.", Items.OAK_BUTTON, ScriptActionArgumentType.DICTIONARY,
-            (task) -> ScriptValueItem.valueFromItem(DFScript.MC.player.getOffHandStack())
+    MAIN_HAND_ITEM_OLD(builder -> builder
+            .name("MainHandItem (Old)")
+            .description("The item in the players main hand.")
+            .icon(Items.STONE_BUTTON)
+            .removeUsability().proposeAlternative(MAIN_HAND_ITEM)
+    ),
+
+    OFF_HAND_ITEM("OffHandItem","The item in the players off hand.", Items.OAK_BUTTON, ScriptActionArgumentType.ITEM,
+            (task) -> new ScriptItemValue(DFScript.MC.player.getOffHandStack())
+    ),
+
+    OFF_HAND_ITEM_OLD(builder -> builder
+            .name("OffHandItem (Old)")
+            .description("The item in the players off hand.")
+            .icon(Items.OAK_BUTTON)
+            .removeUsability().proposeAlternative(OFF_HAND_ITEM)
     ),
 
     FULL_INVENTORY("FullInventory","The entire inventory items of the player.", Items.OAK_PLANKS, ScriptActionArgumentType.LIST, (task) -> {
         List<ScriptValue> list = new ArrayList<>();
         for (int i = 0; i < DFScript.MC.player.getInventory().size(); i++) {
-            list.add(ScriptValueItem.valueFromItem(DFScript.MC.player.getInventory().getStack(i)));
+            list.add(new ScriptItemValue(DFScript.MC.player.getInventory().getStack(i)));
         }
         return new ScriptListValue(list);
     }),
+
+    FULL_INVENTORY_OLD(builder -> builder
+            .name("FullInventory (Old)")
+            .description("The entire inventory items of the player.")
+            .icon(Items.OAK_PLANKS)
+            .removeUsability().proposeAlternative(FULL_INVENTORY)
+    ),
 
     MAIN_INVENTORY("MainInventory", "The main inventory items of the player.", Items.BIRCH_PLANKS, ScriptActionArgumentType.LIST, (task) -> {
         List<ScriptValue> list = new ArrayList<>();
         for (ItemStack item : DFScript.MC.player.getInventory().main) {
-            list.add(ScriptValueItem.valueFromItem(item));
+            list.add(new ScriptItemValue(item));
         }
         return new ScriptListValue(list);
     }),
+
+    MAIN_INVENTORY_OLD(builder -> builder
+            .name("MainInventory (Old)")
+            .description("The main inventory items of the player.")
+            .icon(Items.BIRCH_PLANKS)
+            .removeUsability().proposeAlternative(MAIN_INVENTORY)
+    ),
 
     ARMOR("Armor", "The armor items of the player.", Items.IRON_CHESTPLATE, ScriptActionArgumentType.LIST, (task) -> {
         List<ScriptValue> list = new ArrayList<>();
         for (ItemStack item : DFScript.MC.player.getInventory().armor) {
-            list.add(ScriptValueItem.valueFromItem(item));
+            list.add(new ScriptItemValue(item));
         }
         return new ScriptListValue(list);
     }),
 
+    ARMOR_OLD(builder -> builder
+            .name("Armor (Old)")
+            .description("The armor items of the player.")
+            .icon(Items.IRON_CHESTPLATE)
+            .removeUsability().proposeAlternative(ARMOR)
+    ),
+
     HOTBAR_ITEMS("Hotbar Items", "The hotbar items of the player.", Items.IRON_AXE, ScriptActionArgumentType.LIST, (task) -> {
         List<ScriptValue> list = new ArrayList<>();
         for (int i = 0; i < 9; i++) {
-            list.add(ScriptValueItem.valueFromItem(DFScript.MC.player.getInventory().getStack(i)));
+            list.add(new ScriptItemValue(DFScript.MC.player.getInventory().getStack(i)));
         }
         return new ScriptListValue(list);
     }),
+
+    HOTBAR_ITEMS_OLD(builder -> builder
+            .name("Hotbar Items (Old)")
+            .description("The hotbar items of the player.")
+            .icon(Items.IRON_AXE)
+            .removeUsability().proposeAlternative(HOTBAR_ITEMS)
+    ),
 
     SELECTED_SLOT("Selected Slot", "The selected hotbar slot.", Items.LIME_DYE, ScriptActionArgumentType.NUMBER,
             (task) -> new ScriptNumberValue(DFScript.MC.player.getInventory().selectedSlot)
