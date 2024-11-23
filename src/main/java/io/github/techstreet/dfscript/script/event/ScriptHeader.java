@@ -4,14 +4,11 @@ import com.google.gson.*;
 import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
 import io.github.techstreet.dfscript.script.*;
 import io.github.techstreet.dfscript.script.action.*;
-import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class ScriptHeader implements ScriptRunnable, ScriptScopeParent {
@@ -63,7 +60,7 @@ public abstract class ScriptHeader implements ScriptRunnable, ScriptScopeParent 
                     String icon = obj.get("icon").getAsString();
                     String description = obj.get("description").getAsString();
                     ScriptActionArgumentList list = context.deserialize(obj.getAsJsonObject("args"), ScriptActionArgumentList.class);
-                    header = new ScriptFunction(function, Registries.ITEM.get(new Identifier(icon)), list, description);
+                    header = new ScriptFunction(function, Registries.ITEM.get(Identifier.of(icon)), list, description);
                 }
                 default -> throw new JsonParseException("Unknown script header type: " + type);
             }

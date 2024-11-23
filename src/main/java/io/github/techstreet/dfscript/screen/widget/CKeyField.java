@@ -1,7 +1,6 @@
 package io.github.techstreet.dfscript.screen.widget;
 
 import io.github.techstreet.dfscript.DFScript;
-import io.github.techstreet.dfscript.util.RenderUtil;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.InputUtil;
@@ -58,11 +57,11 @@ public class CKeyField implements CWidget {
         Vector4f end = new Vector4f((xPos + (width * 2)) - 7, (yPos + (height * 2)), 1, 1);
 
         int guiScale = (int) DFScript.MC.getWindow().getScaleFactor();
-        RenderUtil.pushScissor(
-                (int) begin.x()*guiScale,
-                (int) begin.y()*guiScale,
-                (int) (end.x() - begin.x())*guiScale,
-                (int) (end.y() - begin.y())*guiScale
+        context.enableScissor(
+                (int) begin.x(),
+                (int) begin.y(),
+                (int) end.x(),
+                (int) end.y()
         );
 
         stack.translate(2, 2, 0);
@@ -95,7 +94,7 @@ public class CKeyField implements CWidget {
 
         stack.pop();
         stack.pop();
-        RenderUtil.popScissor();
+        context.disableScissor();
     }
 
     @Override

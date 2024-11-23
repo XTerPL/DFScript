@@ -42,7 +42,7 @@ public class ScriptBoolOption implements ScriptOption {
     }
 
     private String getTexture() {
-        return DFScript.MOD_ID + (value ? ":on_button.png" : ":off_button.png");
+        return DFScript.MOD_ID + (value ? ":on_button" : ":off_button");
     }
 
     @Override

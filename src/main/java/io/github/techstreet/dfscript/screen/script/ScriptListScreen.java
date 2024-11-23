@@ -104,7 +104,7 @@ public class ScriptListScreen extends CScreen {
 
             if (allowEditAndUpload) {
                 // Delete Button
-                CButton delete = new CTexturedButton(20 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":delete.png", () -> {
+                CButton delete = new CTexturedButton(20 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":delete", () -> {
                     DFScript.MC.setScreen(new ScriptDeletionScreen(s));
                 });
 
@@ -120,16 +120,16 @@ public class ScriptListScreen extends CScreen {
             // Enable or Disable Button
             CButton enableDisable;
             if(blocked) {
-                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":warning.png", () -> {});
+                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":warning", () -> {});
                 enableDisable.setDisabled(true);
             } else if (s.disabled()) {
-                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":enable.png", () -> {
+                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":enable", () -> {
                     s.setDisabled(false);
                     ScriptManager.getInstance().saveScript(s);
                     DFScript.MC.setScreen(new ScriptListScreen(allowEditAndUpload));
                 });
             } else {
-                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":disable.png", () -> {
+                enableDisable = new CTexturedButton(30 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":disable", () -> {
                     s.setDisabled(true);
                     ScriptManager.getInstance().saveScript(s);
                     DFScript.MC.setScreen(new ScriptListScreen(allowEditAndUpload));
@@ -141,14 +141,14 @@ public class ScriptListScreen extends CScreen {
             if(allowEditAndUpload) {
                 if (owned) {
                     // Edit Button
-                    CButton edit = new CTexturedButton(addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":wrench.png", () -> {
+                    CButton edit = new CTexturedButton(addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":wrench", () -> {
                         DFScript.MC.setScreen(new ScriptEditScreen(s));
                     });
 
                     panel.add(edit);
 
                     // Upload or Remove Button
-                    CButton upload = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":upload.png", () -> {
+                    CButton upload = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":upload", () -> {
                         try {
                             // Encode the script JSON to GZIP Base64
                             byte[] bytes = Files.readAllBytes(s.getFile().toPath());
@@ -200,7 +200,7 @@ public class ScriptListScreen extends CScreen {
                     });
 
                     if (!Objects.equals(s.getServer(), "None")) {
-                        upload = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":unupload.png", () -> {
+                        upload = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":unupload", () -> {
                             try {
                                 // Remove the script to the server
                                 URL url = new URL("https://DFScript-Server.techstreetdev.repl.co/scripts/remove/");
@@ -243,7 +243,7 @@ public class ScriptListScreen extends CScreen {
                 }
                 else {
                     //Script Settings Button
-                    CButton settings = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":settings.png", () -> {
+                    CButton settings = new CTexturedButton(10 + addedX, y + addedY, 8, 8, DFScript.MOD_ID + ":settings", () -> {
                         DFScript.MC.setScreen(new ScriptSettingsScreen(s, false));
                     });
 

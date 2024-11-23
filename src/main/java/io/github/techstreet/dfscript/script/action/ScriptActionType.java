@@ -19,7 +19,6 @@ import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.menu.*;
 import io.github.techstreet.dfscript.script.repetitions.ScriptRepetition;
-import io.github.techstreet.dfscript.script.util.ScriptValueItem;
 import io.github.techstreet.dfscript.script.util.ScriptValueJson;
 import io.github.techstreet.dfscript.script.values.*;
 import io.github.techstreet.dfscript.util.*;
@@ -609,7 +608,7 @@ public enum ScriptActionType {
 
                 Identifier itemId = null;
                 try {
-                    itemId = new Identifier(id);
+                    itemId = Identifier.of(id);
                 }
                 catch(Exception err) {
                     err.printStackTrace();
@@ -816,7 +815,7 @@ public enum ScriptActionType {
             SoundManager sndManager = io.github.techstreet.dfscript.DFScript.MC.getSoundManager();
 
             try {
-                sndid = new Identifier(sound);
+                sndid = Identifier.of(sound);
             }
             catch(Exception err) {
                 err.printStackTrace();
@@ -882,7 +881,7 @@ public enum ScriptActionType {
                 SoundManager sndManager = io.github.techstreet.dfscript.DFScript.MC.getSoundManager();
 
                 try {
-                    sndid = new Identifier(sound);
+                    sndid = Identifier.of(sound);
                 }
                 catch(Exception err) {
                     err.printStackTrace();

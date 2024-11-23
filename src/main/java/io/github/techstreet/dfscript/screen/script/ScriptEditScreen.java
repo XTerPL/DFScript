@@ -19,7 +19,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 public class ScriptEditScreen extends CReloadableScreen {
-    private final Identifier identifier_main = new Identifier(DFScript.MOD_ID + ":wrench.png");
+    private final Identifier identifier_main = DFScript.identifier("wrench.png");
 
     private final Script script;
     private static int scroll = 0;
@@ -54,7 +54,7 @@ public class ScriptEditScreen extends CReloadableScreen {
         CText name = new CText(5,y+2,Text.literal(script.getName()),0,1,false,false);
         panel.add(name);
 
-        CButton settings = new CTexturedButton(120-8, y, 8, 8, DFScript.MOD_ID + ":settings.png", () -> {
+        CButton settings = new CTexturedButton(120-8, y, 8, 8, DFScript.MOD_ID + ":settings", () -> {
             DFScript.MC.setScreen(new ScriptSettingsScreen(this.script, true));
         });
         panel.add(settings);

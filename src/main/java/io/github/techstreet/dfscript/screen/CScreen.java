@@ -2,14 +2,13 @@ package io.github.techstreet.dfscript.screen;
 
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.screen.widget.CWidget;
-import io.github.techstreet.dfscript.util.RenderUtil;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +42,8 @@ public class CScreen extends Screen {
 
         stack.translate(-width/2f, -height/2f, 0);
 
-        RenderUtil.renderGui(context,0,0,width,height);
+        context.drawGuiTexture(RenderLayer::getGuiTextured, DFScript.identifier("gui_background"),
+                                0, 0, width, height);
 
         mouseX += -mc.currentScreen.width/2;
         mouseY += -mc.currentScreen.height/2;

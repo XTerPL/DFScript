@@ -31,7 +31,7 @@ public class ScriptItemValue extends ScriptValue {
             throw new UnsupportedOperationException("Item Script Value initialization from ItemStack only available in a world!");
         }
 
-        this.value = item.encodeAllowEmpty(DFScript.MC.player.clientWorld.getRegistryManager());
+        this.value = item.toNbtAllowEmpty(DFScript.MC.player.clientWorld.getRegistryManager());
     }
 
     @Override
@@ -76,7 +76,7 @@ public class ScriptItemValue extends ScriptValue {
         }
         try
         {
-            return Registries.ITEM.getId(asItem().getItem()).equals(new Identifier(other.asText()));
+            return Registries.ITEM.getId(asItem().getItem()).equals(Identifier.of(other.asText()));
         }
         catch(InvalidIdentifierException e)
         {

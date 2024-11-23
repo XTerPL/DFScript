@@ -33,7 +33,7 @@ public class ScriptValueItem {
             throw new UnsupportedOperationException("Item to Dictionary Conversion only available when in a world!");
         }
 
-        NbtElement nbt = item.encodeAllowEmpty(DFScript.MC.player.clientWorld.getRegistryManager());
+        NbtElement nbt = item.toNbtAllowEmpty(DFScript.MC.player.clientWorld.getRegistryManager());
         return valueFromNbt(nbt);
     }
 

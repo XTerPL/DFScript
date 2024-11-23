@@ -1,14 +1,15 @@
 package io.github.techstreet.dfscript.screen.widget;
 
 import io.github.techstreet.dfscript.DFScript;
-import io.github.techstreet.dfscript.util.RenderUtil;
 import java.awt.Rectangle;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 public class CButton implements CWidget {
 
@@ -49,7 +50,16 @@ public class CButton implements CWidget {
 
         Rectangle rect = new Rectangle(x, y, width, height);
 
-        RenderUtil.renderButton(context, 0, 0, width * 2, height * 2, rect.contains(mouseX, mouseY), disabled);
+        String image = "widget/button";
+        if (disabled) {
+            image = "widget/button_disabled";
+        }
+        else if (rect.contains(mouseX, mouseY)) {
+            image = "widget/button_highlighted";
+        }
+
+        context.drawGuiTexture(RenderLayer::getGuiTextured, Identifier.of(image), 0, 0, width*2, height*2);
+
         stack.pop();
 
         TextRenderer f = DFScript.MC.textRenderer;

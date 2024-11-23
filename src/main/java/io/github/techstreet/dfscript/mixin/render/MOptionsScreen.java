@@ -17,14 +17,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MOptionsScreen extends Screen {
 
     @Unique
-    private final Identifier identifier_main = new Identifier(DFScript.MOD_ID + ":scripts");
+    private final Identifier identifier_main = DFScript.identifier("scripts");
     @Unique
-    private final Identifier identifier_main_highlight = new Identifier(DFScript.MOD_ID + ":scripts_highlight");
-
-    @Unique
-    private final Identifier identifier_test = new Identifier(DFScript.MOD_ID + ":scripts");
-    @Unique
-    private final Identifier identifier_test_highlight = new Identifier(DFScript.MOD_ID + ":scripts_highlight");
+    private final Identifier identifier_main_highlight = DFScript.identifier("scripts_highlight");
 
     public MOptionsScreen(Text literalText) {
         super(literalText);

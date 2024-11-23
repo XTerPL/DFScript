@@ -116,7 +116,7 @@ public class ScriptAddSettingSubtypeScreen extends CScreen {
         }
 
         if(noNull) {
-            CTexturedButton button = new CTexturedButton(width - 10, 3, 8, 8, DFScript.MOD_ID + ":on_button.png", () -> {
+            CTexturedButton button = new CTexturedButton(width - 10, 3, 8, 8, DFScript.MOD_ID + ":on_button", () -> {
                 try {
                     script.addOption(pos, new ScriptNamedOption(ScriptOption.instantiate(option, subtypes), script.getUnnamedOption()));
                 } catch (Exception e) {

@@ -52,7 +52,7 @@ public class DFScript implements ModInitializer {
 
         MOD_VERSION = FabricLoader.getInstance().getModContainer(MOD_ID).get().getMetadata().getVersion().getFriendlyString();
 
-        ArgumentTypeRegistry.registerArgumentType(new Identifier("tutorial", "uuid"), StringFuncArgumentType.class, new StringFuncArgumentSerializer());
+        ArgumentTypeRegistry.registerArgumentType(DFScript.identifier("string_function"), StringFuncArgumentType.class, new StringFuncArgumentSerializer());
 
         Loader loader = Loader.getInstance();
         loader.load(new CommandManager());
@@ -63,6 +63,10 @@ public class DFScript implements ModInitializer {
         loader.load(new OverlayManager());
 
         LOGGER.info("Initialized");
+    }
+
+    public static Identifier identifier(String path) {
+        return Identifier.of(MOD_ID, path);
     }
 
     public void onClose() {

@@ -1,9 +1,9 @@
 package io.github.techstreet.dfscript.screen.widget;
 
-import io.github.techstreet.dfscript.util.RenderUtil;
-
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 
 public class CTexturedButton extends CButton {
 
@@ -27,7 +27,7 @@ public class CTexturedButton extends CButton {
         stack.translate(x, y, 0);
         stack.scale(0.5f, 0.5f, 0.5f);
 
-        RenderUtil.renderImage(context, 0, 0, width * 2, height * 2, 0, 0, 1, 1, texture);
+        context.drawGuiTexture(RenderLayer::getGuiTextured, Identifier.of(texture), 0, 0, width*2, height*2);
         stack.pop();
     }
 }
