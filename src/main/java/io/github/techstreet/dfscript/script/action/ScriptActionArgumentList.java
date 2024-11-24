@@ -79,7 +79,10 @@ public class ScriptActionArgumentList extends ArrayList<ScriptActionArgument> {
                         }
                     }
                 }
-                ctx.setArg(arg, args);
+                if(!args.isEmpty())
+                {
+                    ctx.setArg(arg, args);
+                }
             }
             if (pos == ctx.arguments().size()) {
                 return;

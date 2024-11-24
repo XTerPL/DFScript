@@ -19,6 +19,7 @@ import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.menu.*;
 import io.github.techstreet.dfscript.script.repetitions.ScriptRepetition;
+import io.github.techstreet.dfscript.script.util.ScriptValueItem;
 import io.github.techstreet.dfscript.script.util.ScriptValueJson;
 import io.github.techstreet.dfscript.script.values.*;
 import io.github.techstreet.dfscript.util.*;
@@ -31,9 +32,12 @@ import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.packet.s2c.play.CommandTreeS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.sound.SoundEvent;
@@ -633,6 +637,163 @@ public enum ScriptActionType {
                 ctx.setVariable("Result", new ScriptItemValue(item));
             })),
 
+    GET_ITEM_TYPE(builder -> builder.name("Get Item Type")
+            .description("Gets an item's type.")
+            .icon(Items.CHISELED_STONE_BRICKS)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                Item type = item.getItem();
+
+                ctx.setVariable("Result", new ScriptTextValue(type.toString()));
+            })),
+
+    SET_ITEM_TYPE(builder -> builder.name("Set Item Type")
+            .description("Sets an item's type.")
+            .icon(Items.CHISELED_STONE_BRICKS, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Item Type", ScriptActionArgumentType.TEXT)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                String id = ctx.value("Item Type").asText();
+
+                Identifier itemId = null;
+                try {
+                    itemId = Identifier.of(id);
+                }
+                catch(Exception err) {
+                    err.printStackTrace();
+                    OverlayManager.getInstance().add("Incorrect identifier: " + id);
+                    return;
+                }
+
+                if(!Registries.ITEM.containsId(itemId)) {
+                    OverlayManager.getInstance().add("Unknown item: " + id);
+                    return;
+                }
+
+                ctx.setVariable("Result", new ScriptItemValue(item.withItem(Registries.ITEM.get(itemId))));
+            })),
+
+    GET_STACK_SIZE(builder -> builder.name("Get Stack Size")
+            .description("Get an item's stack size.")
+            .icon(Items.REDSTONE)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                int stackSize = item.getCount();
+
+                ctx.setVariable("Result", new ScriptNumberValue(stackSize));
+            })),
+
+    SET_STACK_SIZE(builder -> builder.name("Set Stack Size")
+            .description("Sets an item's stack size.")
+            .icon(Items.REDSTONE, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Stack Size", ScriptActionArgumentType.NUMBER)
+            .action(ctx -> {
+                DFScript.LOGGER.info(ctx.argMap().keySet().toString());
+
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                                        "Item to modify" : "Result").asItem();
+
+                item.setCount((int) ctx.value("Stack Size").asNumber());
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    GET_MAX_STACK_SIZE(builder -> builder.name("Get Max Stack Size")
+            .description("Get an item's max stack size.")
+            .icon(Items.REDSTONE_BLOCK)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                int stackSize = item.getMaxCount();
+
+                ctx.setVariable("Result", new ScriptNumberValue(stackSize));
+            })),
+
+    SET_MAX_STACK_SIZE(builder -> builder.name("Set Max Stack Size")
+            .description("Sets an item's max stack size.")
+            .icon(Items.REDSTONE_BLOCK, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Max Stack Size", ScriptActionArgumentType.NUMBER)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                item.set(DataComponentTypes.MAX_STACK_SIZE, (int) ctx.value("Max Stack Size").asNumber());
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    GET_CUSTOM_DATA(builder -> builder.name("Get Custom Data")
+            .description("Gets an item's custom data component.")
+            .icon(Items.CHEST_MINECART)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                if(item.getComponents().contains(DataComponentTypes.CUSTOM_DATA)) {
+                    ctx.setVariable("Result", ScriptValueItem.valueFromNbt(
+                            item.get(DataComponentTypes.CUSTOM_DATA).copyNbt()
+                    ));
+                    return;
+                }
+
+                ctx.setVariable("Result", new ScriptUnknownValue());
+            })),
+
+    SET_CUSTOM_DATA(builder -> builder.name("Set Custom Data")
+            .description("Sets an item's custom data component.")
+            .icon(Items.CHEST_MINECART, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM)
+            .arg("Custom Data", ScriptActionArgumentType.DICTIONARY)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                item.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of((NbtCompound) ScriptValueItem.nbtFromValue(ctx.value("Custom Data"))));
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    REMOVE_CUSTOM_DATA(builder -> builder.name("Remove Custom Data")
+            .description("Removes an item's custom data component.")
+            .icon(Items.TNT_MINECART, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                item.remove(DataComponentTypes.CUSTOM_DATA);
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
     ROUND_NUM(builder -> builder.name("Round Number")
         .description("Rounds a number.")
         .icon(Items.QUARTZ_STAIRS)
@@ -1159,7 +1320,7 @@ public enum ScriptActionType {
         })),
 
     WRITE_FILE_OLD(builder -> builder.name("Write File OLD")
-            .description("This action doesn't support all types of values.\nFiles written by this file can only be correctly read by the old Read File action.")
+            .description("This action doesn't support all types of values.\nFiles written by this action can only be correctly read by the old Read File action.")
             .icon(Items.WRITABLE_BOOK)
             .category(ScriptActionCategory.MISC)
             .arg("Filename", ScriptActionArgumentType.TEXT)
@@ -1234,7 +1395,7 @@ public enum ScriptActionType {
             ItemStack item = ctx.value("Item").asItem();
 
             if (io.github.techstreet.dfscript.DFScript.MC.interactionManager.getCurrentGameMode() == GameMode.CREATIVE) {
-                ItemUtil.giveCreativeItem(item,true);
+                DFScript.MC.player.giveItemStack(item);
             } else {
                 OverlayManager.getInstance().add("Unable to set give item! (Not in creative mode)");
             }
