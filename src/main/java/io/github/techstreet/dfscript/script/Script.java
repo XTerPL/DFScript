@@ -7,7 +7,7 @@ import io.github.techstreet.dfscript.script.action.ScriptActionTag;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
-import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptClientValueType;
 import io.github.techstreet.dfscript.script.conditions.ScriptBranch;
 import io.github.techstreet.dfscript.script.conditions.ScriptBuiltinCondition;
 import io.github.techstreet.dfscript.script.conditions.ScriptCondition;
@@ -312,7 +312,7 @@ public class Script {
         }
     }
 
-    public void replaceClientValue(ScriptClientValueArgument oldClientValue, ScriptClientValueArgument newClientValue) {
+    public void replaceClientValue(ScriptClientValueType oldClientValue, ScriptClientValueType newClientValue) {
         for(ScriptHeader header : headers) {
             header.forEach((snippet) -> snippet.replaceClientValue(oldClientValue, newClientValue));
         }
@@ -445,6 +445,15 @@ public class Script {
             for(ScriptSnippet snippet : header.container().snippets)
             {
                 snippet.updateTags();
+            }
+        }
+    }
+
+    public void setClientValueMode(ScriptClientValueType type, String mode) {
+        for(ScriptHeader header : headers) {
+            for(ScriptSnippet snippet : header.container().snippets)
+            {
+                snippet.setClientValueMode(type, mode);
             }
         }
     }

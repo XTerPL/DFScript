@@ -59,7 +59,7 @@ public interface ScriptArgument {
                 case "NUMBER" -> new ScriptNumberArgument(object.get("value").getAsDouble());
                 case "BOOL" -> new ScriptBoolArgument(object.get("value").getAsBoolean());
                 case "VARIABLE" -> context.deserialize(object, ScriptVariableArgument.class);
-                case "CLIENT_VALUE" -> ScriptClientValueArgument.valueOf(object.get("value").getAsString());
+                case "CLIENT_VALUE" -> context.deserialize(object, ScriptClientValueArgument.class);
                 case "CONFIG_VALUE" -> new ScriptConfigArgument(object.get("value").getAsString(), null);
                 case "FUNCTION_ARGUMENT" -> new ScriptFunctionArgument(object.get("value").getAsString(), null);
                 default -> throw new JsonParseException("Unknown argument type: " + type);

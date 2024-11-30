@@ -168,12 +168,12 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
         }
     }
 
-    public void replaceClientValue(ScriptClientValueArgument oldClientValue, ScriptClientValueArgument newClientValue) {
+    public void replaceClientValue(ScriptClientValueType oldClientValue, ScriptClientValueType newClientValue) {
         for(int i = 0; i < getArguments().size(); i++) {
             if (getArguments().get(i) instanceof ScriptClientValueArgument clientValue) {
-                if(clientValue == oldClientValue)
+                if(clientValue.getClientValueType() == oldClientValue)
                 {
-                    arguments.set(i, newClientValue);
+                    clientValue.setClientValueType(newClientValue);
                 }
             }
         }
@@ -184,9 +184,9 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
             }
 
             if (tag.getArgument() instanceof ScriptClientValueArgument clientValue) {
-                if(clientValue == oldClientValue)
+                if(clientValue.getClientValueType() == oldClientValue)
                 {
-                    tag.setArgument(newClientValue);
+                    clientValue.setClientValueType(newClientValue);
                 }
             }
         }
@@ -247,5 +247,29 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
         }
 
         tags.add(new ScriptTag(tag, tagValue, null));
+    }
+
+    public void setClientValueMode(ScriptClientValueType type, String mode) {
+        for(int i = 0; i < getArguments().size(); i++) {
+            if (getArguments().get(i) instanceof ScriptClientValueArgument clientValue) {
+                if(clientValue.getClientValueType() == type)
+                {
+                    clientValue.setMode(mode);
+                }
+            }
+        }
+
+        for(ScriptTag tag : getTags()) {
+            if(tag.getArgument() == null) {
+                continue;
+            }
+
+            if (tag.getArgument() instanceof ScriptClientValueArgument clientValue) {
+                if(clientValue.getClientValueType() == type)
+                {
+                    clientValue.setMode(mode);
+                }
+            }
+        }
     }
 }

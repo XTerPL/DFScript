@@ -2,8 +2,7 @@ package io.github.techstreet.dfscript.script;
 
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
-import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
-import io.github.techstreet.dfscript.script.options.ScriptOptionEnum;
+import io.github.techstreet.dfscript.script.argument.ScriptClientValueType;
 import io.github.techstreet.dfscript.util.ComponentUtil;
 
 public class ScriptMigrator {
@@ -55,12 +54,14 @@ public class ScriptMigrator {
             script.replaceAction(ScriptActionType.GIVE_ITEM, ScriptActionType.GIVE_ITEM_OLD);
             script.replaceAction(ScriptActionType.SET_HOTBAR_ITEM, ScriptActionType.SET_HOTBAR_ITEM_OLD);
 
-            script.replaceClientValue(ScriptClientValueArgument.ARMOR, ScriptClientValueArgument.ARMOR_OLD);
-            script.replaceClientValue(ScriptClientValueArgument.HOTBAR_ITEMS, ScriptClientValueArgument.HOTBAR_ITEMS_OLD);
-            script.replaceClientValue(ScriptClientValueArgument.MAIN_INVENTORY, ScriptClientValueArgument.MAIN_INVENTORY_OLD);
-            script.replaceClientValue(ScriptClientValueArgument.FULL_INVENTORY, ScriptClientValueArgument.FULL_INVENTORY_OLD);
-            script.replaceClientValue(ScriptClientValueArgument.MAIN_HAND_ITEM, ScriptClientValueArgument.MAIN_HAND_ITEM_OLD);
-            script.replaceClientValue(ScriptClientValueArgument.OFF_HAND_ITEM, ScriptClientValueArgument.OFF_HAND_ITEM_OLD);
+            script.replaceClientValue(ScriptClientValueType.ARMOR, ScriptClientValueType.ARMOR_OLD);
+            script.replaceClientValue(ScriptClientValueType.HOTBAR_ITEMS, ScriptClientValueType.HOTBAR_ITEMS_OLD);
+            script.replaceClientValue(ScriptClientValueType.MAIN_INVENTORY, ScriptClientValueType.MAIN_INVENTORY_OLD);
+            script.replaceClientValue(ScriptClientValueType.FULL_INVENTORY, ScriptClientValueType.FULL_INVENTORY_OLD);
+            script.replaceClientValue(ScriptClientValueType.MAIN_HAND_ITEM, ScriptClientValueType.MAIN_HAND_ITEM_OLD);
+            script.replaceClientValue(ScriptClientValueType.OFF_HAND_ITEM, ScriptClientValueType.OFF_HAND_ITEM_OLD);
+
+            script.setClientValueMode(ScriptClientValueType.EVENT_MESSAGE, "Ampersand Color Codes");
 
             script.setActionTag(ScriptActionType.DISPLAY_CHAT, ComponentUtil.componentMode, "Ampersand Color Codes");
             script.setActionTag(ScriptActionType.ACTIONBAR, ComponentUtil.componentMode, "Ampersand Color Codes");

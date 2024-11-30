@@ -13,7 +13,7 @@ import io.github.techstreet.dfscript.script.action.ScriptActionTag;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
 import io.github.techstreet.dfscript.script.action.ScriptFunctionCall;
-import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptClientValueType;
 import io.github.techstreet.dfscript.script.conditions.ScriptBranch;
 import io.github.techstreet.dfscript.script.conditions.ScriptBuiltinCondition;
 import io.github.techstreet.dfscript.script.conditions.ScriptConditionType;
@@ -204,7 +204,7 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
         }
     }
 
-    public void replaceClientValue(ScriptClientValueArgument oldClientValue, ScriptClientValueArgument newClientValue) {
+    public void replaceClientValue(ScriptClientValueType oldClientValue, ScriptClientValueType newClientValue) {
         for(ScriptPart part : this) {
             if(part instanceof ScriptParametrizedPart p) {
                 p.replaceClientValue(oldClientValue, newClientValue);
@@ -348,6 +348,17 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
             }
             if(part instanceof ScriptScopeParent p) {
                 p.forEach(ScriptSnippet::updateTags);
+            }
+        }
+    }
+
+    public void setClientValueMode(ScriptClientValueType type, String mode) {
+        for(ScriptPart part : this) {
+            if(part instanceof ScriptParametrizedPart p) {
+                p.setClientValueMode(type, mode);
+            }
+            if(part instanceof ScriptScopeParent p) {
+                p.forEach((snippet) -> snippet.setClientValueMode(type, mode));
             }
         }
     }
