@@ -5,8 +5,11 @@ import io.github.techstreet.dfscript.screen.CScreen;
 import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptParametrizedPart;
+import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
+
+import java.util.function.Consumer;
 
 public class ScriptAddClientValueScreen extends CScreen {
 
@@ -14,15 +17,15 @@ public class ScriptAddClientValueScreen extends CScreen {
 
     private final ScriptHeader header;
     private final ScriptParametrizedPart action;
-    private final int insertIndex;
+    private final Consumer<ScriptArgument> consumer;
     private static final int WIDTH = 58;
 
-    public ScriptAddClientValueScreen(ScriptParametrizedPart action, Script script, int insertIndex, ScriptHeader header, String overwrite) {
+    public ScriptAddClientValueScreen(ScriptParametrizedPart action, Script script, Consumer<ScriptArgument> consumer, ScriptHeader header, String overwrite) {
         super(WIDTH, 58);
         this.script = script;
         this.action = action;
         this.header = header;
-        this.insertIndex = insertIndex;
+        this.consumer = consumer;
 
         int x = 5;
         int y = 5;
@@ -30,8 +33,7 @@ public class ScriptAddClientValueScreen extends CScreen {
             if (arg.getNotice().isHidden()) continue;
             CItem item = new CItem(x, y, arg.getIcon());
             item.setClickListener((btn) -> {
-                if(overwrite != null) action.getArguments().remove(insertIndex);
-                action.getArguments().add(insertIndex, arg);
+                consumer.accept(arg);
                 if (arg.getNotice().disablesScript()) script.block();
                 DFScript.MC.setScreen(new ScriptEditPartScreen(action, script, header));
             });
@@ -46,6 +48,6 @@ public class ScriptAddClientValueScreen extends CScreen {
 
     @Override
     public void close() {
-        DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, insertIndex, header));
+        DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, consumer, header));
     }
 }

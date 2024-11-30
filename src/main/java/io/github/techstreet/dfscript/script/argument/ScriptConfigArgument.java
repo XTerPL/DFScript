@@ -79,4 +79,9 @@ public final class ScriptConfigArgument implements ScriptArgument {
     public String getArgText() {
         return getOption().getFullName();
     }
+
+    @Override
+    public String getOverwrite() {
+        return getName();
+    }
 }

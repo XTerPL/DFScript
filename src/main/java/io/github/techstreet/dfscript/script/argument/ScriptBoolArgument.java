@@ -63,6 +63,11 @@ public final class ScriptBoolArgument implements ScriptArgument {
     }
 
     @Override
+    public String getOverwrite() {
+        return value ? "true" : "false";
+    }
+
+    @Override
     public List<ContextMenuButton> getContextMenu() {
         List<ContextMenuButton> contextMenuButtons = new ArrayList<>();
 

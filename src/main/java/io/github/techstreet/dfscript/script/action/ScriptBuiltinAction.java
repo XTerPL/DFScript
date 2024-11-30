@@ -8,6 +8,7 @@ import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptNotice;
 import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptTag;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
@@ -22,8 +23,8 @@ public class ScriptBuiltinAction extends ScriptAction {
 
     private ScriptActionType type;
 
-    public ScriptBuiltinAction(ScriptActionType type, List<ScriptArgument> arguments) {
-        super(arguments);
+    public ScriptBuiltinAction(ScriptActionType type, List<ScriptArgument> arguments, List<ScriptTag> tags) {
+        super(arguments, tags);
         this.type = type;
     }
 
@@ -35,7 +36,7 @@ public class ScriptBuiltinAction extends ScriptAction {
 
     @Override
     public void run(ScriptTask task) {
-        type.run(new ScriptActionContext(task, getArguments()));
+        type.run(new ScriptActionContext(task, getArguments(), getTags()));
     }
 
     public ScriptActionType getType() {
@@ -53,6 +54,11 @@ public class ScriptBuiltinAction extends ScriptAction {
         }
 
         return notices;
+    }
+
+    @Override
+    public ScriptActionArgumentList getActionArgumentList() {
+        return type.getArgumentList();
     }
 
     @Override
@@ -80,6 +86,7 @@ public class ScriptBuiltinAction extends ScriptAction {
             obj.addProperty("type", "action");
             obj.addProperty("action", src.getType().name());
             obj.add("arguments", context.serialize(src.getArguments()));
+            obj.add("tags", context.serialize(src.getTags()));
             return obj;
         }
     }

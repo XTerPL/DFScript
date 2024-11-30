@@ -8,10 +8,7 @@ import io.github.techstreet.dfscript.event.system.Event;
 import io.github.techstreet.dfscript.event.system.EventManager;
 import io.github.techstreet.dfscript.loader.Loadable;
 import io.github.techstreet.dfscript.screen.script.ScriptAddScreen;
-import io.github.techstreet.dfscript.script.action.ScriptActionArgument;
-import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
-import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
-import io.github.techstreet.dfscript.script.action.ScriptFunctionCall;
+import io.github.techstreet.dfscript.script.action.*;
 import io.github.techstreet.dfscript.script.argument.*;
 import io.github.techstreet.dfscript.script.conditions.ScriptBooleanSet;
 import io.github.techstreet.dfscript.script.conditions.ScriptBranch;
@@ -54,6 +51,7 @@ public class ScriptManager implements Loadable {
         .registerTypeAdapter(ScriptClientValueArgument.class, new ScriptClientValueArgument.Serializer())
         .registerTypeAdapter(ScriptConfigArgument.class, new ScriptConfigArgument.Serializer())
         .registerTypeAdapter(ScriptFunctionArgument.class, new ScriptFunctionArgument.Serializer())
+        .registerTypeAdapter(ScriptTag.class, new ScriptTag.Serializer())
         .registerTypeAdapter(ScriptNamedOption.class, new ScriptNamedOption.Serializer())
         .registerTypeAdapter(ScriptBuiltinAction.class, new ScriptBuiltinAction.Serializer())
         .registerTypeAdapter(ScriptFunctionCall.class, new ScriptFunctionCall.Serializer())
@@ -70,6 +68,7 @@ public class ScriptManager implements Loadable {
         .registerTypeAdapter(ScriptHeader.class, new ScriptHeader.Serializer())
         .registerTypeAdapter(ScriptEmptyHeader.class, new ScriptEmptyHeader.Serializer())
         .registerTypeAdapter(ScriptActionArgument.class, new ScriptActionArgument.Serializer())
+        .registerTypeAdapter(ScriptActionTag.class, new ScriptActionArgument.Serializer())
         .registerTypeAdapter(ScriptActionArgumentList.class, new ScriptActionArgumentList.Serializer())
         .registerTypeAdapter(ScriptValue.class, new ScriptValue.Serializer())
         .registerTypeAdapter(ScriptNumberValue.class, new ScriptNumberValue.Serializer())
@@ -205,6 +204,8 @@ public class ScriptManager implements Loadable {
             ScriptMigrator.migrate(s);
 
             if (s.getVersion() != Script.scriptVersion) throw new RuntimeException("this script uses version " + s.getVersion() + " when this version of DFScript uses version " + Script.scriptVersion + "!");
+
+            s.updateTags();
 
             s.updateBlocked();
             if(s.blocked()) {

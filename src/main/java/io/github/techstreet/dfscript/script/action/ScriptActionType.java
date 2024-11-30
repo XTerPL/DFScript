@@ -63,6 +63,7 @@ public enum ScriptActionType {
         .icon(Items.BOOK)
         .category(ScriptActionCategory.VISUALS)
         .arg("Texts", ScriptActionArgumentType.TEXT, arg -> arg.plural(true))
+        .tag(ComponentUtil.componentMode)
         .action(ctx -> {
             StringBuilder sb = new StringBuilder();
             for (ScriptValue arg : ctx.pluralValue("Texts")) {
@@ -70,14 +71,15 @@ public enum ScriptActionType {
                     .append(" ");
             }
             sb.deleteCharAt(sb.length() - 1);
-            ChatUtil.sendMessage(ComponentUtil.fromString(ComponentUtil.andsToSectionSigns(sb.toString())));
+            ChatUtil.sendMessage(ComponentUtil.fromString(sb.toString(), ctx.tagValue("Component Mode")));
         })),
 
     ACTIONBAR(builder -> builder.name("ActionBar")
-        .description("Displays a message in theq action bar.")
+        .description("Displays a message in the action bar.")
         .icon(Items.SPRUCE_SIGN)
         .category(ScriptActionCategory.VISUALS)
         .arg("Texts", ScriptActionArgumentType.TEXT, arg -> arg.plural(true))
+        .tag(ComponentUtil.componentMode)
         .action(ctx -> {
             StringBuilder sb = new StringBuilder();
             for (ScriptValue arg : ctx.pluralValue("Texts")) {
@@ -85,7 +87,7 @@ public enum ScriptActionType {
                     .append(" ");
             }
             sb.deleteCharAt(sb.length() - 1);
-            ChatUtil.sendActionBar(ComponentUtil.fromString(ComponentUtil.andsToSectionSigns(sb.toString())));
+            ChatUtil.sendActionBar(ComponentUtil.fromString(sb.toString(), ctx.tagValue("Component Mode")));
         })),
 
     SEND_CHAT(builder -> builder.name("SendChat")
@@ -1098,6 +1100,7 @@ public enum ScriptActionType {
         .arg("Fade In", ScriptActionArgumentType.NUMBER, b -> b.optional(true).defaultValue(20))
         .arg("Stay", ScriptActionArgumentType.NUMBER, b -> b.optional(true).defaultValue(60))
         .arg("Fade Out", ScriptActionArgumentType.NUMBER, b -> b.optional(true).defaultValue(20))
+        .tag(ComponentUtil.componentMode)
         .action(ctx -> {
             String title = ctx.value("Title").asText();
             String subtitle = "";
@@ -1121,8 +1124,8 @@ public enum ScriptActionType {
                 fadeOut = (int) ctx.value("Fade Out").asNumber();
             }
 
-            io.github.techstreet.dfscript.DFScript.MC.inGameHud.setTitle(ComponentUtil.fromString(ComponentUtil.andsToSectionSigns(title)));
-            io.github.techstreet.dfscript.DFScript.MC.inGameHud.setSubtitle(ComponentUtil.fromString(ComponentUtil.andsToSectionSigns(subtitle)));
+            io.github.techstreet.dfscript.DFScript.MC.inGameHud.setTitle(ComponentUtil.fromString(title, ctx.tagValue("Component Mode")));
+            io.github.techstreet.dfscript.DFScript.MC.inGameHud.setSubtitle(ComponentUtil.fromString(subtitle, ctx.tagValue("Component Mode")));
             io.github.techstreet.dfscript.DFScript.MC.inGameHud.setTitleTicks(fadeIn, stay, fadeOut);
         })),
 
@@ -1416,13 +1419,14 @@ public enum ScriptActionType {
         .arg("Text", ScriptActionArgumentType.TEXT)
         .arg("X", ScriptActionArgumentType.NUMBER)
         .arg("Y", ScriptActionArgumentType.NUMBER)
+        .tag(ComponentUtil.componentMode)
         .action(ctx -> {
             String text = ctx.value("Text").asText();
             int x = (int) ctx.value("X").asNumber();
             int y = (int) ctx.value("Y").asNumber();
 
             if (ctx.task().event() instanceof HudRenderEvent event) {
-                Text t = ComponentUtil.fromString(ComponentUtil.andsToSectionSigns(text));
+                Text t = ComponentUtil.fromString(text, ctx.tagValue("Component Mode"));
                 event.context().drawText(DFScript.MC.textRenderer, t, x, y, 0xFFFFFF, true);
             }
         })),
@@ -1433,9 +1437,10 @@ public enum ScriptActionType {
         .category(ScriptActionCategory.TEXTS)
         .arg("Result", ScriptActionArgumentType.VARIABLE)
         .arg("Text", ScriptActionArgumentType.TEXT)
+        .tag(ComponentUtil.componentMode)
         .action(ctx -> {
             String text = ctx.value("Text").asText();
-            Text t = ComponentUtil.fromString(ComponentUtil.andsToSectionSigns(text));
+            Text t = ComponentUtil.fromString(text, ctx.tagValue("Component Mode"));
             int width = DFScript.MC.textRenderer.getWidth(t);
             ctx.setVariable("Result", new ScriptNumberValue(width));
         })),
@@ -1530,12 +1535,13 @@ public enum ScriptActionType {
         .arg("Y", ScriptActionArgumentType.NUMBER)
         .arg("Text", ScriptActionArgumentType.TEXT)
         .arg("Identifier", ScriptActionArgumentType.TEXT)
+        .tag(ComponentUtil.componentMode)
         .action(ctx -> {
             int x = (int) ctx.value("X").asNumber();
             int y = (int) ctx.value("Y").asNumber();
             String rawText = ctx.value("Text").asText();
             String identifier = ctx.value("Identifier").asText();
-            Text text = ComponentUtil.fromString(ComponentUtil.andsToSectionSigns(rawText));
+            Text text = ComponentUtil.fromString(rawText, ctx.tagValue("Component Mode"));
 
             DFScript.MC.send(() -> {
                 if (io.github.techstreet.dfscript.DFScript.MC.currentScreen instanceof ScriptMenu menu) {
@@ -1933,6 +1939,10 @@ public enum ScriptActionType {
             lore.addAll(arg.text());
         }
 
+        for (ScriptActionTag tag : arguments.getTags()) {
+            lore.addAll(tag.text());
+        }
+
         item.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         item.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, glow);
@@ -1999,6 +2009,11 @@ public enum ScriptActionType {
         });
     }
 
+    public ScriptActionType tag(ScriptActionTag tag) {
+        arguments.getTags().add(tag);
+        return this;
+    }
+
     public ScriptActionType deprecate() {
         noticeLevel = ScriptNoticeLevel.DEPRECATION;
         return this;
@@ -2025,5 +2040,9 @@ public enum ScriptActionType {
         {
             OverlayManager.getInstance().add("Invalid arguments for " + name + ".");
         }
+    }
+
+    public ScriptActionArgumentList getArgumentList() {
+        return arguments;
     }
 }

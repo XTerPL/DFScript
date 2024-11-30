@@ -28,8 +28,8 @@ public enum ScriptActionCategory {
     )),
     VARIABLES("Variables", Items.IRON_INGOT),
     CONDITIONS("Conditions", Items.LEVER, List.of(
-            new ScriptActionCategoryExtra(ScriptBooleanSet.booleanSetIcon, (sc, sn, ii) -> DFScript.MC.setScreen(new ScriptConditionCategoryScreen(sc, sn, ii, (con) -> new ScriptBooleanSet(new ArrayList<>(), con)))),
-            new ScriptActionCategoryExtra(ScriptWhile.whileIcon, (sc, sn, ii) -> DFScript.MC.setScreen(new ScriptConditionCategoryScreen(sc, sn, ii, (con) -> new ScriptWhile(new ArrayList<>(), con))))
+            new ScriptActionCategoryExtra(ScriptBooleanSet.booleanSetIcon, (sc, sn, ii) -> DFScript.MC.setScreen(new ScriptConditionCategoryScreen(sc, sn, ii, (con) -> new ScriptBooleanSet(new ArrayList<>(), new ArrayList<>(), con)))),
+            new ScriptActionCategoryExtra(ScriptWhile.whileIcon, (sc, sn, ii) -> DFScript.MC.setScreen(new ScriptConditionCategoryScreen(sc, sn, ii, (con) -> new ScriptWhile(new ArrayList<>(), new ArrayList<>(), con))))
     )),
     NUMBERS("Numbers", Items.SLIME_BALL),
     LISTS("Lists", Items.BOOKSHELF),
@@ -47,7 +47,7 @@ public enum ScriptActionCategory {
         for (ScriptFunction function : script.getFunctions()) {
             extras.add(new ScriptActionCategoryExtraPartCreator(
                     function.getIcon(),
-                    () -> new ScriptFunctionCall(script, function.getName(), new ArrayList<>())
+                    () -> new ScriptFunctionCall(script, function.getName(), new ArrayList<>(), new ArrayList<>())
             ));
         }
 

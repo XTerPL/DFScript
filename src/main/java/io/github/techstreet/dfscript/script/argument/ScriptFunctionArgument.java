@@ -87,4 +87,9 @@ public final class ScriptFunctionArgument implements ScriptArgument {
 
         return getFunctionArg().name();
     }
+
+    @Override
+    public String getOverwrite() {
+        return getName();
+    }
 }

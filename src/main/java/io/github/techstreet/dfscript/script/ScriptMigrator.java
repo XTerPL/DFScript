@@ -4,6 +4,7 @@ import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
 import io.github.techstreet.dfscript.script.options.ScriptOptionEnum;
+import io.github.techstreet.dfscript.util.ComponentUtil;
 
 public class ScriptMigrator {
     public static void migrate(Script script) {
@@ -60,6 +61,13 @@ public class ScriptMigrator {
             script.replaceClientValue(ScriptClientValueArgument.FULL_INVENTORY, ScriptClientValueArgument.FULL_INVENTORY_OLD);
             script.replaceClientValue(ScriptClientValueArgument.MAIN_HAND_ITEM, ScriptClientValueArgument.MAIN_HAND_ITEM_OLD);
             script.replaceClientValue(ScriptClientValueArgument.OFF_HAND_ITEM, ScriptClientValueArgument.OFF_HAND_ITEM_OLD);
+
+            script.setActionTag(ScriptActionType.DISPLAY_CHAT, ComponentUtil.componentMode, "Ampersand Color Codes");
+            script.setActionTag(ScriptActionType.ACTIONBAR, ComponentUtil.componentMode, "Ampersand Color Codes");
+            script.setActionTag(ScriptActionType.DISPLAY_TITLE, ComponentUtil.componentMode, "Ampersand Color Codes");
+            script.setActionTag(ScriptActionType.DRAW_TEXT, ComponentUtil.componentMode, "Ampersand Color Codes");
+            script.setActionTag(ScriptActionType.MEASURE_TEXT, ComponentUtil.componentMode, "Ampersand Color Codes");
+            script.setActionTag(ScriptActionType.ADD_MENU_TEXT, ComponentUtil.componentMode, "Ampersand Color Codes");
 
             script.setVersion(8);
         }

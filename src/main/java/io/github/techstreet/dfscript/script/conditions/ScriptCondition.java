@@ -2,6 +2,7 @@ package io.github.techstreet.dfscript.script.conditions;
 
 import com.google.gson.*;
 import io.github.techstreet.dfscript.script.*;
+import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import net.minecraft.item.ItemStack;
@@ -18,8 +19,7 @@ public abstract class ScriptCondition {
     }
 
     public ScriptCondition invert() {
-        inverted = !inverted;
-        return this;
+        return null;
     }
 
     public boolean isInverted() {
@@ -38,6 +38,8 @@ public abstract class ScriptCondition {
     }
 
     public abstract List<Text> getLore();
+
+    public abstract ScriptActionArgumentList getArgumentList();
 
     public static class Serializer implements JsonDeserializer<ScriptCondition> {
 

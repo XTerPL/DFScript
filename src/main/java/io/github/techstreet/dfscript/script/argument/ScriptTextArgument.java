@@ -53,4 +53,9 @@ public record ScriptTextArgument(String value) implements ScriptArgument {
             return object;
         }
     }
+
+    @Override
+    public String getOverwrite() {
+        return value();
+    }
 }

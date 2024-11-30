@@ -111,6 +111,11 @@ public final class ScriptVariableArgument implements ScriptArgument {
         return scope.getShortName();
     }
 
+    @Override
+    public String getOverwrite() {
+        return name();
+    }
+
     public static class Serializer implements JsonSerializer<ScriptVariableArgument>, JsonDeserializer<ScriptVariableArgument> {
         @Override
         public ScriptVariableArgument deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {

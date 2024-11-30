@@ -7,6 +7,7 @@ import com.google.gson.JsonSerializer;
 import io.github.techstreet.dfscript.screen.overlay.OverlayManager;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptTag;
 import io.github.techstreet.dfscript.script.event.ScriptFunction;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
@@ -22,8 +23,8 @@ public class ScriptFunctionCall extends ScriptAction {
     transient Script script;
     private String function;
 
-    public ScriptFunctionCall(Script script, String function, List<ScriptArgument> arguments) {
-        super(arguments);
+    public ScriptFunctionCall(Script script, String function, List<ScriptArgument> arguments, List<ScriptTag> tags) {
+        super(arguments, tags);
         this.function = function;
         this.script = script;
     }
@@ -36,7 +37,7 @@ public class ScriptFunctionCall extends ScriptAction {
 
     @Override
     public void run(ScriptTask task) {
-        ScriptActionContext context = new ScriptActionContext(task, getArguments());
+        ScriptActionContext context = new ScriptActionContext(task, getArguments(), getTags());
 
         try
         {
@@ -75,6 +76,11 @@ public class ScriptFunctionCall extends ScriptAction {
     }
 
     @Override
+    public ScriptActionArgumentList getActionArgumentList() {
+        return getFunction().argList();
+    }
+
+    @Override
     public void updateScriptReferences(Script script, ScriptHeader header) {
         super.updateScriptReferences(script, header);
         this.script = script;
@@ -88,6 +94,7 @@ public class ScriptFunctionCall extends ScriptAction {
             obj.addProperty("type", "functionCall");
             obj.addProperty("functionCall", src.getFunctionName());
             obj.add("arguments", context.serialize(src.getArguments()));
+            obj.add("tags", context.serialize(src.getTags()));
             return obj;
         }
     }

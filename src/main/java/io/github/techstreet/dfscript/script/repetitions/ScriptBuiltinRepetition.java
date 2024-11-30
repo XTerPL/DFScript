@@ -7,7 +7,9 @@ import com.google.gson.JsonSerializer;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptNotice;
 import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
+import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptTag;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
@@ -22,8 +24,8 @@ public class ScriptBuiltinRepetition extends ScriptRepetition {
 
     private ScriptRepetitionType type;
 
-    public ScriptBuiltinRepetition(List<ScriptArgument> arguments, ScriptRepetitionType type) {
-        super(arguments);
+    public ScriptBuiltinRepetition(List<ScriptArgument> arguments, List<ScriptTag> tags, ScriptRepetitionType type) {
+        super(arguments, tags);
         this.type = type;
     }
 
@@ -58,6 +60,11 @@ public class ScriptBuiltinRepetition extends ScriptRepetition {
     }
 
     @Override
+    public ScriptActionArgumentList getActionArgumentList() {
+        return type.getArgumentList();
+    }
+
+    @Override
     public ItemStack getIcon() {
         return type.getIcon();
     }
@@ -69,7 +76,7 @@ public class ScriptBuiltinRepetition extends ScriptRepetition {
 
     @Override
     public boolean checkCondition(ScriptTask task) {
-        ScriptActionContext ctx = new ScriptActionContext(task, getArguments());
+        ScriptActionContext ctx = new ScriptActionContext(task, getArguments(), getTags());
         return type.run(ctx);
     }
 
@@ -81,6 +88,7 @@ public class ScriptBuiltinRepetition extends ScriptRepetition {
             obj.addProperty("type", "repetition");
             obj.addProperty("repetition", src.getType().name());
             obj.add("arguments", context.serialize(src.getArguments()));
+            obj.add("tags", context.serialize(src.getTags()));
             obj.add("snippet", context.serialize(src.container().getSnippet(0)));
             return obj;
         }

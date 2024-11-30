@@ -9,6 +9,7 @@ import io.github.techstreet.dfscript.screen.script.ScriptPartCategoryScreen;
 import io.github.techstreet.dfscript.screen.widget.CButton;
 import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
 import io.github.techstreet.dfscript.screen.widget.CText;
+import io.github.techstreet.dfscript.script.action.ScriptActionTag;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
 import io.github.techstreet.dfscript.script.action.ScriptFunctionCall;
@@ -325,6 +326,30 @@ public class ScriptSnippet extends ArrayList<ScriptPart> {
         }
 
         return false;
+    }
+
+    public void setActionTag(ScriptActionType action, ScriptActionTag tag, String tagValue) {
+        for(ScriptPart part : this) {
+            if(part instanceof ScriptBuiltinAction a) {
+                if(a.getType() == action) {
+                    a.setTag(tag, tagValue);
+                }
+            }
+            if(part instanceof ScriptScopeParent p) {
+                p.forEach((snippet) -> snippet.setActionTag(action, tag, tagValue));
+            }
+        }
+    }
+
+    public void updateTags() {
+        for(ScriptPart part : this) {
+            if(part instanceof ScriptParametrizedPart a) {
+                a.updateTags();
+            }
+            if(part instanceof ScriptScopeParent p) {
+                p.forEach(ScriptSnippet::updateTags);
+            }
+        }
     }
 
     public static class Serializer implements JsonSerializer<ScriptSnippet>, JsonDeserializer<ScriptSnippet> {

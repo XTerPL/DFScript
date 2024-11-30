@@ -6,6 +6,8 @@ import io.github.techstreet.dfscript.script.action.ScriptActionArgument;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument.ScriptActionArgumentType;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
 import io.github.techstreet.dfscript.script.action.ScriptActionCategory;
+import io.github.techstreet.dfscript.script.action.ScriptActionTag;
+import io.github.techstreet.dfscript.script.conditions.ScriptConditionType;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.values.ScriptNumberValue;
 import io.github.techstreet.dfscript.script.values.ScriptTextValue;
@@ -153,6 +155,10 @@ public enum ScriptRepetitionType {
             lore.addAll(arg.text());
         }
 
+        for (ScriptActionTag tag : arguments.getTags()) {
+            lore.addAll(tag.text());
+        }
+
         item.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         item.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, glow);
@@ -219,6 +225,11 @@ public enum ScriptRepetitionType {
         });
     }
 
+    public ScriptRepetitionType tag(ScriptActionTag tag) {
+        arguments.getTags().add(tag);
+        return this;
+    }
+
     public ScriptRepetitionType deprecate() {
         noticeLevel = ScriptNoticeLevel.DEPRECATION;
         return this;
@@ -233,6 +244,10 @@ public enum ScriptRepetitionType {
         this.alternative = alternative;
 
         return this;
+    }
+
+    public ScriptActionArgumentList getArgumentList() {
+        return arguments;
     }
 
     public boolean run(ScriptActionContext ctx) {

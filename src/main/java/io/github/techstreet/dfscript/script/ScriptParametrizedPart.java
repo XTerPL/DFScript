@@ -1,9 +1,8 @@
 package io.github.techstreet.dfscript.script;
 
-import io.github.techstreet.dfscript.script.argument.ScriptArgument;
-import io.github.techstreet.dfscript.script.argument.ScriptClientValueArgument;
-import io.github.techstreet.dfscript.script.argument.ScriptConfigArgument;
-import io.github.techstreet.dfscript.script.argument.ScriptFunctionArgument;
+import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
+import io.github.techstreet.dfscript.script.action.ScriptActionTag;
+import io.github.techstreet.dfscript.script.argument.*;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 
 import java.util.ArrayList;
@@ -13,13 +12,19 @@ import java.util.Objects;
 public abstract class ScriptParametrizedPart extends ScriptPart implements ScriptRunnable {
 
     List<ScriptArgument> arguments;
+    List<ScriptTag> tags;
 
-    public ScriptParametrizedPart(List<ScriptArgument> arguments) {
+    public ScriptParametrizedPart(List<ScriptArgument> arguments, List<ScriptTag> tags) {
         this.arguments = arguments;
+        this.tags = tags;
     }
 
     public List<ScriptArgument> getArguments() {
         return arguments;
+    }
+
+    public List<ScriptTag> getTags() {
+        return tags;
     }
 
     @Override
@@ -33,6 +38,36 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
         return notices;
     }
 
+    public abstract ScriptActionArgumentList getActionArgumentList();
+
+    public void updateTags() {
+        ScriptActionArgumentList argList = getActionArgumentList();
+
+        int i = 0;
+        while(i < getTags().size()) {
+            ScriptTag tag = getTags().get(i);
+            ScriptActionTag actionTag = tag.getTag(argList);
+            if(actionTag == null) {
+                getTags().remove(i);
+                continue;
+            }
+            i++;
+        }
+
+        for(ScriptActionTag actionTag : argList.getTags()) {
+            boolean has = false;
+            for(ScriptTag tag : getTags()) {
+                if(tag.getTag(argList) == actionTag) {
+                    has = true;
+                    break;
+                }
+            }
+            if(!has) {
+                tags.add(new ScriptTag(actionTag));
+            }
+        }
+    }
+
     public void updateScriptReferences(Script script, ScriptHeader header) {
         for(ScriptArgument arg : getArguments()) {
             if (arg instanceof ScriptConfigArgument carg) {
@@ -42,11 +77,35 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
                 farg.setHeader(header);
             }
         }
+        for(ScriptTag tag : getTags()) {
+            if(tag.getArgument() == null) {
+                continue;
+            }
+
+            if (tag.getArgument() instanceof ScriptConfigArgument carg) {
+                carg.setScript(script);
+            }
+            if (tag.getArgument() instanceof ScriptFunctionArgument farg) {
+                farg.setHeader(header);
+            }
+        }
     }
 
     public void updateConfigArguments(String oldOption, String newOption) {
         for(ScriptArgument arg : getArguments()) {
             if (arg instanceof ScriptConfigArgument carg) {
+                if(Objects.equals(carg.getName(), oldOption))
+                {
+                    carg.setOption(newOption);
+                }
+            }
+        }
+        for(ScriptTag tag : getTags()) {
+            if(tag.getArgument() == null) {
+                continue;
+            }
+
+            if (tag.getArgument() instanceof ScriptConfigArgument carg) {
                 if(Objects.equals(carg.getName(), oldOption))
                 {
                     carg.setOption(newOption);
@@ -70,11 +129,37 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
             }
             index++;
         }
+
+        for(ScriptTag tag : getTags()) {
+            if(tag.getArgument() == null) {
+                continue;
+            }
+
+            if (tag.getArgument() instanceof ScriptConfigArgument carg) {
+                if(Objects.equals(carg.getName(), option))
+                {
+                    tag.setArgument(null);
+                }
+            }
+        }
     }
 
     public void replaceFunctionArgument(String oldArg, String newArg) {
         for(ScriptArgument arg : getArguments()) {
             if (arg instanceof ScriptFunctionArgument carg) {
+                if(Objects.equals(carg.getName(), oldArg))
+                {
+                    carg.setFunctionArg(newArg);
+                }
+            }
+        }
+
+        for(ScriptTag tag : getTags()) {
+            if(tag.getArgument() == null) {
+                continue;
+            }
+
+            if (tag.getArgument() instanceof ScriptFunctionArgument carg) {
                 if(Objects.equals(carg.getName(), oldArg))
                 {
                     carg.setFunctionArg(newArg);
@@ -89,6 +174,19 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
                 if(clientValue == oldClientValue)
                 {
                     arguments.set(i, newClientValue);
+                }
+            }
+        }
+
+        for(ScriptTag tag : getTags()) {
+            if(tag.getArgument() == null) {
+                continue;
+            }
+
+            if (tag.getArgument() instanceof ScriptClientValueArgument clientValue) {
+                if(clientValue == oldClientValue)
+                {
+                    tag.setArgument(newClientValue);
                 }
             }
         }
@@ -109,6 +207,19 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
             }
             index++;
         }
+
+        for(ScriptTag tag : getTags()) {
+            if(tag.getArgument() == null) {
+                continue;
+            }
+
+            if (tag.getArgument() instanceof ScriptFunctionArgument carg) {
+                if(Objects.equals(carg.getName(), arg))
+                {
+                    tag.setArgument(null);
+                }
+            }
+        }
     }
 
     public boolean blocked() {
@@ -117,6 +228,24 @@ public abstract class ScriptParametrizedPart extends ScriptPart implements Scrip
                 return true;
             }
         }
+        for(ScriptTag tag : tags) {
+            if(tag.getArgument() != null) {
+                if(tag.getArgument().getNotice().disablesScript()) {
+                    return true;
+                }
+            }
+        }
         return false;
+    }
+
+    public void setTag(ScriptActionTag tag, String tagValue) {
+        for(ScriptTag atag : tags) {
+            if(Objects.equals(atag.getTagName(), tag.getName())) {
+                atag.select(tagValue);
+                return;
+            }
+        }
+
+        tags.add(new ScriptTag(tag, tagValue, null));
     }
 }

@@ -8,7 +8,9 @@ import io.github.techstreet.dfscript.screen.ContextMenuButton;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptNotice;
 import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
+import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptTag;
 import io.github.techstreet.dfscript.script.conditions.ScriptCondition;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
@@ -45,8 +47,8 @@ public class ScriptWhile extends ScriptRepetition {
     }
     private final ScriptCondition condition;
 
-    public ScriptWhile(List<ScriptArgument> arguments, ScriptCondition condition) {
-        super(arguments);
+    public ScriptWhile(List<ScriptArgument> arguments, List<ScriptTag> tags, ScriptCondition condition) {
+        super(arguments, tags);
         this.condition = condition;
     }
 
@@ -94,6 +96,11 @@ public class ScriptWhile extends ScriptRepetition {
     }
 
     @Override
+    public ScriptActionArgumentList getActionArgumentList() {
+        return condition.getArgumentList();
+    }
+
+    @Override
     public List<ContextMenuButton> getContextMenu() {
         List<ContextMenuButton> extra = new ArrayList<>();
         extra.add(new ContextMenuButton("Invert", condition::invert));
@@ -102,7 +109,7 @@ public class ScriptWhile extends ScriptRepetition {
 
     @Override
     public boolean checkCondition(ScriptTask task) {
-        ScriptActionContext ctx = new ScriptActionContext(task, getArguments());
+        ScriptActionContext ctx = new ScriptActionContext(task, getArguments(), getTags());
         return condition.run(ctx);
     }
 
@@ -114,6 +121,7 @@ public class ScriptWhile extends ScriptRepetition {
             obj.addProperty("type", "while");
             obj.add("condition", context.serialize(src.condition));
             obj.add("arguments", context.serialize(src.getArguments()));
+            obj.add("tags", context.serialize(src.getTags()));
             obj.add("snippet", context.serialize(src.container().getSnippet(0)));
             return obj;
         }

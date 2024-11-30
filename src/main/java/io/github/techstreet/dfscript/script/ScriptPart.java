@@ -10,6 +10,7 @@ import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
 import io.github.techstreet.dfscript.script.action.ScriptFunctionCall;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptTag;
 import io.github.techstreet.dfscript.script.conditions.ScriptBooleanSet;
 import io.github.techstreet.dfscript.script.conditions.ScriptBranch;
 import io.github.techstreet.dfscript.script.conditions.ScriptCondition;
@@ -60,7 +61,13 @@ public abstract class ScriptPart implements ScriptRunnable {
                     for (JsonElement arg : obj.get("arguments").getAsJsonArray()) {
                         args.add(context.deserialize(arg, ScriptArgument.class));
                     }
-                    return new ScriptBuiltinAction(ScriptActionType.valueOf(action), args);
+                    List<ScriptTag> tags = new ArrayList<>();
+                    if(obj.has("tags")) {
+                        for (JsonElement arg : obj.get("tags").getAsJsonArray()) {
+                            tags.add(context.deserialize(arg, ScriptTag.class));
+                        }
+                    }
+                    return new ScriptBuiltinAction(ScriptActionType.valueOf(action), args, tags);
                 }
                 case "functionCall" -> {
                     String action = obj.get("functionCall").getAsString();
@@ -68,7 +75,13 @@ public abstract class ScriptPart implements ScriptRunnable {
                     for (JsonElement arg : obj.get("arguments").getAsJsonArray()) {
                         args.add(context.deserialize(arg, ScriptArgument.class));
                     }
-                    return new ScriptFunctionCall(null, action, args);
+                    List<ScriptTag> tags = new ArrayList<>();
+                    if(obj.has("tags")) {
+                        for (JsonElement arg : obj.get("tags").getAsJsonArray()) {
+                            tags.add(context.deserialize(arg, ScriptTag.class));
+                        }
+                    }
+                    return new ScriptFunctionCall(null, action, args, tags);
                 }
                 case "branch" -> {
                     boolean hasElse = obj.get("hasElse").getAsBoolean();
@@ -76,9 +89,15 @@ public abstract class ScriptPart implements ScriptRunnable {
                     for (JsonElement arg : obj.get("arguments").getAsJsonArray()) {
                         args.add(context.deserialize(arg, ScriptArgument.class));
                     }
+                    List<ScriptTag> tags = new ArrayList<>();
+                    if(obj.has("tags")) {
+                        for (JsonElement arg : obj.get("tags").getAsJsonArray()) {
+                            tags.add(context.deserialize(arg, ScriptTag.class));
+                        }
+                    }
                     ScriptCondition condition = context.deserialize(obj.get("condition"), ScriptCondition.class);
 
-                    ScriptBranch part = new ScriptBranch(args, condition);
+                    ScriptBranch part = new ScriptBranch(args, tags, condition);
                     if(hasElse) part.setHasElse();
 
                     part.container().setSnippet(0, context.deserialize(obj.getAsJsonObject("true"), ScriptSnippet.class));
@@ -91,11 +110,15 @@ public abstract class ScriptPart implements ScriptRunnable {
                     for (JsonElement arg : obj.get("arguments").getAsJsonArray()) {
                         args.add(context.deserialize(arg, ScriptArgument.class));
                     }
+                    List<ScriptTag> tags = new ArrayList<>();
+                    if(obj.has("tags")) {
+                        for (JsonElement arg : obj.get("tags").getAsJsonArray()) {
+                            tags.add(context.deserialize(arg, ScriptTag.class));
+                        }
+                    }
                     ScriptCondition condition = context.deserialize(obj.get("condition"), ScriptCondition.class);
 
-                    ScriptBooleanSet part = new ScriptBooleanSet(args, condition);
-
-                    return part;
+                    return new ScriptBooleanSet(args, tags, condition);
                 }
                 case "repetition" -> {
                     String action = obj.get("repetition").getAsString();
@@ -103,7 +126,13 @@ public abstract class ScriptPart implements ScriptRunnable {
                     for (JsonElement arg : obj.get("arguments").getAsJsonArray()) {
                         args.add(context.deserialize(arg, ScriptArgument.class));
                     }
-                    ScriptBuiltinRepetition part = new ScriptBuiltinRepetition(args, ScriptRepetitionType.valueOf(action));
+                    List<ScriptTag> tags = new ArrayList<>();
+                    if(obj.has("tags")) {
+                        for (JsonElement arg : obj.get("tags").getAsJsonArray()) {
+                            tags.add(context.deserialize(arg, ScriptTag.class));
+                        }
+                    }
+                    ScriptBuiltinRepetition part = new ScriptBuiltinRepetition(args, tags, ScriptRepetitionType.valueOf(action));
 
                     part.container().setSnippet(0, context.deserialize(obj.getAsJsonObject("snippet"), ScriptSnippet.class));
 
@@ -115,7 +144,13 @@ public abstract class ScriptPart implements ScriptRunnable {
                     for (JsonElement arg : obj.get("arguments").getAsJsonArray()) {
                         args.add(context.deserialize(arg, ScriptArgument.class));
                     }
-                    ScriptWhile part = new ScriptWhile(args, condition);
+                    List<ScriptTag> tags = new ArrayList<>();
+                    if(obj.has("tags")) {
+                        for (JsonElement arg : obj.get("tags").getAsJsonArray()) {
+                            tags.add(context.deserialize(arg, ScriptTag.class));
+                        }
+                    }
+                    ScriptWhile part = new ScriptWhile(args, tags, condition);
 
                     part.container().setSnippet(0, context.deserialize(obj.getAsJsonObject("snippet"), ScriptSnippet.class));
 

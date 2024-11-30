@@ -28,6 +28,8 @@ public interface ScriptArgument {
 
     String getArgText();
 
+    String getOverwrite();
+
     default ScriptNotice getNotice() {
         return new ScriptNotice(ScriptNoticeLevel.NORMAL);
     }

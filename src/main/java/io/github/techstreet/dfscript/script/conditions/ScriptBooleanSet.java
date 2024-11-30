@@ -7,7 +7,9 @@ import com.google.gson.JsonSerializer;
 import io.github.techstreet.dfscript.screen.ContextMenuButton;
 import io.github.techstreet.dfscript.script.*;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument;
+import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptTag;
 import io.github.techstreet.dfscript.script.argument.ScriptVariableArgument;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
@@ -55,8 +57,8 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
 
     ScriptCondition condition;
 
-    public ScriptBooleanSet(List<ScriptArgument> arguments, ScriptCondition condition) {
-        super(arguments);
+    public ScriptBooleanSet(List<ScriptArgument> arguments, List<ScriptTag> tags, ScriptCondition condition) {
+        super(arguments, tags);
         this.condition = condition;
     }
 
@@ -84,7 +86,7 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
             conditionArguments.add(getArguments().get(i));
         }
 
-        ScriptActionContext actionCtx = new ScriptActionContext(task, conditionArguments);
+        ScriptActionContext actionCtx = new ScriptActionContext(task, conditionArguments, getTags());
         boolean result = condition.run(actionCtx);
 
         variable.getVariable(task).set(new ScriptBoolValue(result));
@@ -140,6 +142,11 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
     }
 
     @Override
+    public ScriptActionArgumentList getActionArgumentList() {
+        return condition.getArgumentList();
+    }
+
+    @Override
     public String getName() {
         return booleanSetName + ":" + condition.getName("", " NOT");
     }
@@ -152,6 +159,7 @@ public class ScriptBooleanSet extends ScriptParametrizedPart {
             obj.addProperty("type", "booleanSet");
             obj.add("condition", context.serialize(src.condition));
             obj.add("arguments", context.serialize(src.getArguments()));
+            obj.add("tags", context.serialize(src.getTags()));
             return obj;
         }
     }

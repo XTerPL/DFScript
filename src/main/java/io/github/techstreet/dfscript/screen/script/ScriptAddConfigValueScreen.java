@@ -6,28 +6,29 @@ import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptParametrizedPart;
-import io.github.techstreet.dfscript.script.ScriptPart;
-import io.github.techstreet.dfscript.script.action.ScriptAction;
+import io.github.techstreet.dfscript.script.argument.ScriptArgument;
 import io.github.techstreet.dfscript.script.argument.ScriptConfigArgument;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import io.github.techstreet.dfscript.script.options.ScriptNamedOption;
+
+import java.util.function.Consumer;
 
 public class ScriptAddConfigValueScreen extends CScreen {
     private final Script script;
 
     private final ScriptHeader header;
     private final ScriptParametrizedPart action;
-    private final int insertIndex;
+    private final Consumer<ScriptArgument> consumer;
 
     private static int WIDTH = 200;
     private static int HEIGHT = 94;
 
-    public ScriptAddConfigValueScreen(ScriptParametrizedPart action, Script script, int insertIndex, ScriptHeader header, String overwrite) {
+    public ScriptAddConfigValueScreen(ScriptParametrizedPart action, Script script, Consumer<ScriptArgument> consumer, ScriptHeader header, String overwrite) {
         super(WIDTH, HEIGHT);
         this.script = script;
         this.action = action;
         this.header = header;
-        this.insertIndex = insertIndex;
+        this.consumer = consumer;
 
         CScrollPanel panel = new CScrollPanel(0, 0, WIDTH, HEIGHT);
 
@@ -36,8 +37,7 @@ public class ScriptAddConfigValueScreen extends CScreen {
         for (ScriptNamedOption arg : script.getOptions()) {
             CItem item = new CItem(x, y, arg.getIcon());
             item.setClickListener((btn) -> {
-                if(overwrite != null) action.getArguments().remove(insertIndex);
-                this.action.getArguments().add(insertIndex, new ScriptConfigArgument(arg.getName(), this.script));
+                consumer.accept(new ScriptConfigArgument(arg.getName(), this.script));
                 DFScript.MC.setScreen(new ScriptEditPartScreen(this.action, this.script, this.header));
             });
             panel.add(item);
@@ -53,6 +53,6 @@ public class ScriptAddConfigValueScreen extends CScreen {
 
     @Override
     public void close() {
-        DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, insertIndex, header));
+        DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, consumer, header));
     }
 }

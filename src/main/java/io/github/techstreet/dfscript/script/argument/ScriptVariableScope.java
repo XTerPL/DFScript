@@ -17,7 +17,7 @@ public enum ScriptVariableScope {
     ),
     TASK(
             Text.literal("Task").setStyle(Style.EMPTY.withColor(Formatting.GREEN).withItalic(false)),
-            (task) -> task.variables()
+            ScriptTask::variables
     ),
 
     FUNCTION(

@@ -4,6 +4,7 @@ import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.screen.CScreen;
 import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.script.Script;
+import io.github.techstreet.dfscript.script.ScriptParametrizedPart;
 import io.github.techstreet.dfscript.script.ScriptPart;
 import io.github.techstreet.dfscript.script.ScriptSnippet;
 import io.github.techstreet.dfscript.script.action.*;
@@ -37,7 +38,13 @@ public class ScriptConditionSelectScreen extends CScreen {
 
             CItem item = new CItem(x, y, type.getIcon(""));
             item.setClickListener((btn) -> {
-                snippet.add(insertIndex, partCreator.apply(new ScriptBuiltinCondition(type)));
+                ScriptPart part = partCreator.apply(new ScriptBuiltinCondition(type));
+
+                if(part instanceof ScriptParametrizedPart ppart) {
+                    ppart.updateTags();
+                }
+
+                snippet.add(insertIndex, part);
                 DFScript.MC.setScreen(new ScriptEditScreen(script));
             });
             widgets.add(item);

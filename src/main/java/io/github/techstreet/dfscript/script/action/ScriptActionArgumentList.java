@@ -3,6 +3,7 @@ package io.github.techstreet.dfscript.script.action;
 import com.google.gson.*;
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptTag;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 
 import java.lang.reflect.Type;
@@ -10,12 +11,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScriptActionArgumentList extends ArrayList<ScriptActionArgument> {
-    public ScriptActionArgumentList(ScriptActionArgumentList current) {
+    final ArrayList<ScriptActionTag> tags = new ArrayList<>();
+
+    private ScriptActionArgumentList(ScriptActionArgumentList current) {
         this.addAll(current);
+        this.tags.addAll(current.tags);
     }
 
     public ScriptActionArgumentList() {
 
+    }
+
+    public ArrayList<ScriptActionTag> getTags() {
+        return tags;
     }
 
     private void generatePossibilities(List<ScriptActionArgumentList> possibilities, ScriptActionArgumentList current, int pos) {
@@ -44,7 +52,11 @@ public class ScriptActionArgumentList extends ArrayList<ScriptActionArgument> {
     public List<ScriptActionArgumentList> generatePossibilities() {
         List<ScriptActionArgumentList> possibilities = new ArrayList<>();
 
-        generatePossibilities(possibilities, new ScriptActionArgumentList(), 0);
+        ScriptActionArgumentList initial = new ScriptActionArgumentList();
+
+        initial.tags.addAll(tags);
+
+        generatePossibilities(possibilities, initial, 0);
 
         return possibilities;
     }
@@ -54,6 +66,10 @@ public class ScriptActionArgumentList extends ArrayList<ScriptActionArgument> {
 
         for (ScriptActionArgument arg : this) {
             ctx.putActionArg(arg);
+        }
+
+        for(ScriptActionTag tag : tags) {
+            ctx.putActionTag(tag);
         }
 
         search:
@@ -85,6 +101,9 @@ public class ScriptActionArgumentList extends ArrayList<ScriptActionArgument> {
                 }
             }
             if (pos == ctx.arguments().size()) {
+                for(ScriptTag tag : ctx.tags()) {
+                    ctx.tagMap().put(tag.getTagName(), tag);
+                }
                 return;
             }
         }
@@ -131,12 +150,18 @@ public class ScriptActionArgumentList extends ArrayList<ScriptActionArgument> {
         public JsonElement serialize(ScriptActionArgumentList src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject obj = new JsonObject();
             JsonArray args = new JsonArray();
+            JsonArray tags = new JsonArray();
 
             for (ScriptActionArgument arg : src) {
                 args.add(context.serialize(arg));
             }
 
+            for (ScriptActionTag tag : src.getTags()) {
+                args.add(context.serialize(tag));
+            }
+
             obj.add("args", args);
+            obj.add("tags", tags);
 
             return obj;
         }
@@ -150,6 +175,14 @@ public class ScriptActionArgumentList extends ArrayList<ScriptActionArgument> {
 
             for (JsonElement arg : argList) {
                 list.add(context.deserialize(arg, ScriptActionArgument.class));
+            }
+
+            if(obj.has("tags")) {
+                JsonArray tagList = obj.getAsJsonArray("tags");
+
+                for (JsonElement tag : tagList) {
+                    list.add(context.deserialize(tag, ScriptActionTag.class));
+                }
             }
 
             return list;

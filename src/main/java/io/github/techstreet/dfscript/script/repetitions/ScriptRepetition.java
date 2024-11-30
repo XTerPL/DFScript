@@ -5,6 +5,7 @@ import io.github.techstreet.dfscript.screen.widget.CScrollPanel;
 import io.github.techstreet.dfscript.screen.widget.CText;
 import io.github.techstreet.dfscript.script.*;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptTag;
 import io.github.techstreet.dfscript.script.conditions.ScriptBranch;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
@@ -24,8 +25,8 @@ public abstract class ScriptRepetition extends ScriptParametrizedPart implements
 
     ScriptContainer container;
 
-    public ScriptRepetition(List<ScriptArgument> arguments) {
-        super(arguments);
+    public ScriptRepetition(List<ScriptArgument> arguments, List<ScriptTag> tags) {
+        super(arguments, tags);
         container = new ScriptContainer(1);
     }
 

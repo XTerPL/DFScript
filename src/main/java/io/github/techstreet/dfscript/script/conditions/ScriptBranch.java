@@ -6,7 +6,9 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import io.github.techstreet.dfscript.screen.ContextMenuButton;
 import io.github.techstreet.dfscript.script.*;
+import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
+import io.github.techstreet.dfscript.script.argument.ScriptTag;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.execution.ScriptTask;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
@@ -59,8 +61,8 @@ public class ScriptBranch extends ScriptParametrizedPart implements ScriptScopeP
     ScriptCondition condition;
     ScriptContainer container;
 
-    public ScriptBranch(List<ScriptArgument> arguments, ScriptCondition condition) {
-        super(arguments);
+    public ScriptBranch(List<ScriptArgument> arguments, List<ScriptTag> tags, ScriptCondition condition) {
+        super(arguments, tags);
         this.condition = condition;
         container = new ScriptContainer(2);
     }
@@ -94,7 +96,7 @@ public class ScriptBranch extends ScriptParametrizedPart implements ScriptScopeP
 
     @Override
     public void run(ScriptTask task) {
-        ScriptActionContext actionCtx = new ScriptActionContext(task, getArguments());
+        ScriptActionContext actionCtx = new ScriptActionContext(task, getArguments(), getTags());
         boolean result = condition.run(actionCtx);
 
         if(!result && !hasElse) return;
@@ -117,6 +119,11 @@ public class ScriptBranch extends ScriptParametrizedPart implements ScriptScopeP
         }
 
         return notices;
+    }
+
+    @Override
+    public ScriptActionArgumentList getActionArgumentList() {
+        return condition.getArgumentList();
     }
 
     @Override
@@ -155,6 +162,7 @@ public class ScriptBranch extends ScriptParametrizedPart implements ScriptScopeP
             obj.addProperty("type", "branch");
             obj.add("condition", context.serialize(src.condition));
             obj.add("arguments", context.serialize(src.getArguments()));
+            obj.add("tags", context.serialize(src.getTags()));
             obj.addProperty("hasElse", src.hasElse);
             obj.add("true", context.serialize(src.container().getSnippet(0)));
             obj.add("false", context.serialize(src.container().getSnippet(1)));

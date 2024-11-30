@@ -3,10 +3,8 @@ package io.github.techstreet.dfscript.script.conditions;
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.script.ScriptNotice;
 import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
-import io.github.techstreet.dfscript.script.action.ScriptActionArgument;
+import io.github.techstreet.dfscript.script.action.*;
 import io.github.techstreet.dfscript.script.action.ScriptActionArgument.ScriptActionArgumentType;
-import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
-import io.github.techstreet.dfscript.script.action.ScriptActionCategory;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.values.*;
 import io.github.techstreet.dfscript.util.*;
@@ -364,6 +362,10 @@ public enum ScriptConditionType {
             lore.addAll(arg.text());
         }
 
+        for (ScriptActionTag tag : arguments.getTags()) {
+            lore.addAll(tag.text());
+        }
+
         return lore;
     }
 
@@ -423,6 +425,11 @@ public enum ScriptConditionType {
         });
     }
 
+    public ScriptConditionType tag(ScriptActionTag tag) {
+        arguments.getTags().add(tag);
+        return this;
+    }
+
     public ScriptConditionType deprecate() {
         noticeLevel = ScriptNoticeLevel.DEPRECATION;
         return this;
@@ -454,5 +461,9 @@ public enum ScriptConditionType {
 
     public ItemStack getIcon() {
         return getIcon("");
+    }
+
+    public ScriptActionArgumentList getArgumentList() {
+        return arguments;
     }
 }

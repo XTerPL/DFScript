@@ -3,6 +3,7 @@ package io.github.techstreet.dfscript.script;
 import com.google.gson.*;
 import io.github.techstreet.dfscript.DFScript;
 import io.github.techstreet.dfscript.event.system.Event;
+import io.github.techstreet.dfscript.script.action.ScriptActionTag;
 import io.github.techstreet.dfscript.script.action.ScriptActionType;
 import io.github.techstreet.dfscript.script.action.ScriptBuiltinAction;
 import io.github.techstreet.dfscript.script.argument.ScriptArgument;
@@ -305,6 +306,12 @@ public class Script {
         }
     }
 
+    public void setActionTag(ScriptActionType action, ScriptActionTag tag, String tagValue) {
+        for(ScriptHeader header : headers) {
+            header.forEach((snippet) -> snippet.setActionTag(action, tag, tagValue));
+        }
+    }
+
     public void replaceClientValue(ScriptClientValueArgument oldClientValue, ScriptClientValueArgument newClientValue) {
         for(ScriptHeader header : headers) {
             header.forEach((snippet) -> snippet.replaceClientValue(oldClientValue, newClientValue));
@@ -430,6 +437,15 @@ public class Script {
     public void removeFunction(String function) {
         for(ScriptHeader header : headers) {
             header.forEach((snippet) -> snippet.removeFunction(function));
+        }
+    }
+
+    public void updateTags() {
+        for(ScriptHeader header : headers) {
+            for(ScriptSnippet snippet : header.container().snippets)
+            {
+                snippet.updateTags();
+            }
         }
     }
 
@@ -596,7 +612,7 @@ public class Script {
                                 }
                                 else {
                                     ScriptCondition condition = new ScriptBuiltinCondition(ScriptConditionType.TRUE).invert();
-                                    ScriptBranch b = new ScriptBranch(new ArrayList<>(), condition);
+                                    ScriptBranch b = new ScriptBranch(new ArrayList<>(), new ArrayList<>(), condition);
                                     snippet.add(b);
                                 }
                             }
@@ -611,7 +627,7 @@ public class Script {
                                 try {
                                     ScriptActionType innerType = ScriptActionType.valueOf(action);
 
-                                    snippet.add(new ScriptBuiltinAction(innerType, args));
+                                    snippet.add(new ScriptBuiltinAction(innerType, args, new ArrayList<>()));
                                 }
                                 catch(IllegalArgumentException e) {
                                     ScriptSnippet innerSnippet = new ScriptSnippet();
@@ -619,13 +635,13 @@ public class Script {
 
                                     try {
                                         ScriptRepetitionType innerType = ScriptRepetitionType.valueOf(action);
-                                        ScriptBuiltinRepetition part = new ScriptBuiltinRepetition(args, innerType);
+                                        ScriptBuiltinRepetition part = new ScriptBuiltinRepetition(args, new ArrayList<>(), innerType);
                                         part.container().setSnippet(0, innerSnippet);
                                         snippet.add(part);
                                     }
                                     catch(IllegalArgumentException e2) {
                                         ScriptConditionType innerType = ScriptConditionType.valueOf(action);
-                                        ScriptBranch part = new ScriptBranch(args, new ScriptBuiltinCondition(innerType));
+                                        ScriptBranch part = new ScriptBranch(args, new ArrayList<>(), new ScriptBuiltinCondition(innerType));
                                         part.container().setSnippet(0, innerSnippet);
                                         snippet.add(part);
                                     }

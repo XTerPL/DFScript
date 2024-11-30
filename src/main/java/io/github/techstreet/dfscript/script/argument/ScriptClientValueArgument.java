@@ -350,4 +350,9 @@ public enum ScriptClientValueArgument implements ScriptArgument {
     public String getArgText() {
         return name;
     }
+
+    @Override
+    public String getOverwrite() {
+        return getName();
+    }
 }

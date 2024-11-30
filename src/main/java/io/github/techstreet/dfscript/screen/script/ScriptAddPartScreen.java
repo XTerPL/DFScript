@@ -68,7 +68,8 @@ public class ScriptAddPartScreen extends CScreen {
 
             CItem item = new CItem(x, y, type.getIcon());
             item.setClickListener((btn) -> {
-                ScriptAction action = new ScriptBuiltinAction(type, new ArrayList<>());
+                ScriptAction action = new ScriptBuiltinAction(type, new ArrayList<>(), new ArrayList<>());
+                action.updateTags();
                 snippet.add(insertIndex, action);
                 if (type.getNotice().disablesScript()) script.block();
                 DFScript.MC.setScreen(new ScriptEditScreen(script));
@@ -87,7 +88,8 @@ public class ScriptAddPartScreen extends CScreen {
 
             CItem item = new CItem(x, y, type.getIcon("If"));
             item.setClickListener((btn) -> {
-                ScriptBranch action = new ScriptBranch(new ArrayList<>(), new ScriptBuiltinCondition(type));
+                ScriptBranch action = new ScriptBranch(new ArrayList<>(), new ArrayList<>(), new ScriptBuiltinCondition(type));
+                action.updateTags();
                 snippet.add(insertIndex, action);
                 if (type.getNotice("").disablesScript()) script.block();
                 DFScript.MC.setScreen(new ScriptEditScreen(script));
@@ -106,7 +108,8 @@ public class ScriptAddPartScreen extends CScreen {
 
             CItem item = new CItem(x, y, type.getIcon());
             item.setClickListener((btn) -> {
-                ScriptBuiltinRepetition action = new ScriptBuiltinRepetition(new ArrayList<>(), type);
+                ScriptBuiltinRepetition action = new ScriptBuiltinRepetition(new ArrayList<>(), new ArrayList<>(), type);
+                action.updateTags();
                 snippet.add(insertIndex, action);
                 if (type.getNotice().disablesScript()) script.block();
                 DFScript.MC.setScreen(new ScriptEditScreen(script));

@@ -7,6 +7,7 @@ import com.google.gson.JsonSerializer;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptNotice;
 import io.github.techstreet.dfscript.script.ScriptPart;
+import io.github.techstreet.dfscript.script.action.ScriptActionArgumentList;
 import io.github.techstreet.dfscript.script.execution.ScriptActionContext;
 import io.github.techstreet.dfscript.script.render.ScriptPartRender;
 import io.github.techstreet.dfscript.script.render.ScriptPartRenderIconElement;
@@ -53,6 +54,11 @@ public class ScriptBuiltinCondition extends ScriptCondition {
     @Override
     public List<Text> getLore() {
         return type.getLore();
+    }
+
+    @Override
+    public ScriptActionArgumentList getArgumentList() {
+        return type.getArgumentList();
     }
 
     public ScriptBuiltinCondition setType(ScriptConditionType newType) {

@@ -6,7 +6,9 @@ import io.github.techstreet.dfscript.screen.ContextMenuButton;
 import io.github.techstreet.dfscript.screen.widget.*;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptNotice;
+import io.github.techstreet.dfscript.script.ScriptNoticeLevel;
 import io.github.techstreet.dfscript.script.ScriptParametrizedPart;
+import io.github.techstreet.dfscript.script.action.ScriptActionTag;
 import io.github.techstreet.dfscript.script.argument.*;
 import io.github.techstreet.dfscript.script.event.ScriptHeader;
 import net.minecraft.client.font.TextRenderer;
@@ -19,6 +21,8 @@ import net.minecraft.text.Text;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 public class ScriptEditPartScreen extends CReloadableScreen {
     private final Script script;
 
@@ -119,20 +123,20 @@ public class ScriptEditPartScreen extends CReloadableScreen {
 
                         if (button == 0) {
                             ScriptArgument argument = action.getArguments().get(currentIndex);
-                            String value = "~";
-                            if(argument instanceof ScriptClientValueArgument clientValue) value = clientValue.getName();
-                            if(argument instanceof ScriptConfigArgument configArgument) value = configArgument.getName();
-                            if(argument instanceof ScriptNumberArgument number) value = String.valueOf(number.value());
-                            if(argument instanceof ScriptTextArgument text) value = text.value();
-                            if(argument instanceof ScriptVariableArgument var) value = var.name();
-                            if(argument instanceof ScriptFunctionArgument var) value = var.getName();
-                            DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, currentIndex, header, value));
+                            String value = argument.getOverwrite();
+                            DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, (newArg) -> {
+                                action.getArguments().set(currentIndex, newArg);
+                            }, header, value));
                         }
 
                         if (button != 0) {
                             List<ContextMenuButton> contextMenuButtons = new ArrayList<>();
-                            contextMenuButtons.add(new ContextMenuButton("Insert Before", () -> DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, currentIndex, header)), false));
-                            contextMenuButtons.add(new ContextMenuButton("Insert After", () -> DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, currentIndex+1, header)), false));
+                            contextMenuButtons.add(new ContextMenuButton("Insert Before", () -> DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, (newArg) -> {
+                                action.getArguments().add(currentIndex, newArg);
+                            }, header)), false));
+                            contextMenuButtons.add(new ContextMenuButton("Insert After", () -> DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, (newArg) -> {
+                                action.getArguments().add(currentIndex+1, newArg);
+                            }, header)), false));
                             contextMenuButtons.add(new ContextMenuButton("Delete", () -> action.getArguments().remove(currentIndex)));
                             contextMenuButtons.addAll(action.getArguments().get(currentIndex).getContextMenu());
                             DFScript.MC.send(() -> {
@@ -153,7 +157,108 @@ public class ScriptEditPartScreen extends CReloadableScreen {
         }
 
         CButton add = new CButton(25, y, 40, 8, "Add", () ->
-                DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, action.getArguments().size(), header)));
+                DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, (newArg) -> {
+                    action.getArguments().add(newArg);
+                }, header)));
         panel.add(add);
+
+        y += 10;
+
+        for(ScriptActionTag actionTag : action.getActionArgumentList().getTags()) {
+            for(ScriptTag tag : action.getTags()) {
+                if(Objects.equals(tag.getTagName(), actionTag.getName())) {
+                    ItemStack icon = tag.getIcon(actionTag);
+                    String tagName = actionTag.getName();
+                    String optionName = tag.getName(actionTag);
+
+                    panel.add(new CItem(5, y, icon));
+                    panel.add(new CText(15, y + 2, Text.literal(tagName)));
+
+                    if(tag.getArgument() == null) {
+                        panel.add(new CTexturedButton(5+80-8, y, 8, 8, DFScript.MOD_ID + ":add", () -> {
+                            DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, tag::setArgument, header));
+                        }));
+                    }
+                    else {
+                        panel.add(new CTexturedButton(5+80-8, y, 8, 8, DFScript.MOD_ID + ":off_button", () -> {
+                            tag.setArgument(null);
+                            reload();
+                        }));
+
+                        ScriptArgument arg = tag.getArgument();
+
+                        ItemStack argIcon = arg.putNotices(arg.getArgIcon());
+                        Text countText = arg.getArgIconText();
+                        String text = arg.getArgText();
+
+                        panel.add(new CItem(5, y + 10, argIcon, countText));
+                        panel.add(new CText(15, y + 12, Text.literal(text)));
+
+                        ScriptNotice notice = arg.getNotice();
+
+                        panel.add(new CButton(5, y + 9, 80, 10, "", () -> {}) {
+                            @Override
+                            public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
+                                Rectangle b = getBounds();
+                                int color = notice.getPartColor(b.contains(mouseX, mouseY));
+                                context.fill(b.x, b.y, b.x + b.width, b.y + b.height, color);
+                            }
+
+                            @Override
+                            public boolean mouseClicked(double x, double y, int button) {
+                                if (getBounds().contains(x, y)) {
+                                    DFScript.MC.getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.UI_BUTTON_CLICK.value(), 1f,1f));
+
+                                    if (button == 0) {
+                                        ScriptArgument argument = tag.getArgument();
+                                        String value = argument.getOverwrite();
+                                        DFScript.MC.setScreen(new ScriptAddArgumentScreen(script, action, tag::setArgument, header, value));
+                                    }
+
+                                    if (button != 0) {
+                                        List<ContextMenuButton> contextMenuButtons = new ArrayList<>();
+                                        contextMenuButtons.add(new ContextMenuButton("Delete", () -> tag.setArgument(null)));
+                                        contextMenuButtons.addAll(tag.getArgument().getContextMenu());
+                                        DFScript.MC.send(() -> {
+                                            if(DFScript.MC.currentScreen instanceof ScriptEditPartScreen screen) {
+                                                screen.contextMenu((int) x, (int) y, contextMenuButtons);
+                                            }
+                                        });
+                                    }
+                                    return true;
+                                }
+                                return false;
+                            }
+                        });
+                    }
+
+                    CSelectField tagOptions = new CSelectField(13, y + (tag.getArgument() == null ? 9 : 19), 80-13-2, 10, optionName, actionTag.getOptionNames());
+
+                    tagOptions.setChangedListener(() -> {
+                        tag.select(tagOptions.getSelectedOptionName());
+                        reload();
+                    });
+
+                    panel.add(tagOptions);
+
+                    panel.add(new CButton(5, y-1, 80, tag.getArgument() == null ? 20 : 30, "",() -> {}) {
+                        @Override
+                        public void render(DrawContext context, int mouseX, int mouseY, float tickDelta) {
+                            Rectangle b = getBounds();
+                            int color = ScriptNoticeLevel.NORMAL.getPartColor(b.contains(mouseX, mouseY));
+                            context.fill(b.x, b.y, b.x + b.width, b.y + b.height, color);
+                        }
+
+                        @Override
+                        public boolean mouseClicked(double x, double y, int button) {
+                            return false;
+                        }
+                    });
+
+                    y += tag.getArgument() == null ? 20 : 30;
+                    index++;
+                }
+            }
+        }
     }
 }

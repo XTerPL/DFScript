@@ -15,6 +15,8 @@ import net.minecraft.item.Items;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 
+import java.util.function.Consumer;
+
 public class ScriptAddArgumentScreen extends CScreen {
 
     private final Script script;
@@ -22,10 +24,10 @@ public class ScriptAddArgumentScreen extends CScreen {
     private final ScriptHeader header;
     private final ScriptParametrizedPart action;
 
-    public ScriptAddArgumentScreen(Script script, ScriptParametrizedPart action, int index, ScriptHeader header) {
-        this(script,action,index, header,null);
+    public ScriptAddArgumentScreen(Script script, ScriptParametrizedPart action, Consumer<ScriptArgument> consumer, ScriptHeader header) {
+        this(script,action,consumer, header,null);
     }
-    public ScriptAddArgumentScreen(Script script, ScriptParametrizedPart action, int index, ScriptHeader header, String overwrite) {
+    public ScriptAddArgumentScreen(Script script, ScriptParametrizedPart action, Consumer<ScriptArgument> consumer, ScriptHeader header, String overwrite) {
         super(100, 50);
         this.script = script;
         this.action = action;
@@ -78,16 +80,14 @@ public class ScriptAddArgumentScreen extends CScreen {
         input.setChangedListener(() -> input.textColor = 0xFFFFFF);
 
         addText.setClickListener((btn) -> {
-            if(overwrite != null) action.getArguments().remove(index);
-            action.getArguments().add(index, new ScriptTextArgument(input.getText()));
+            consumer.accept(new ScriptTextArgument(input.getText()));
             close();
         });
 
         addNumber.setClickListener((btn) -> {
             try {
                 double number = Double.parseDouble(input.getText());
-                if(overwrite != null) action.getArguments().remove(index);
-                action.getArguments().add(index, new ScriptNumberArgument(number));
+                consumer.accept(new ScriptNumberArgument(number));
                 close();
             } catch (Exception err) {
                 input.textColor = 0xFF3333;
@@ -95,32 +95,29 @@ public class ScriptAddArgumentScreen extends CScreen {
         });
 
         addVariable.setClickListener((btn) -> {
-            if(overwrite != null) action.getArguments().remove(index);
-            action.getArguments().add(index, new ScriptVariableArgument(input.getText(), ScriptVariableScope.SCRIPT));
+            consumer.accept(new ScriptVariableArgument(input.getText(), ScriptVariableScope.SCRIPT));
             close();
         });
 
         addClientValue.setClickListener((btn) -> {
-            DFScript.MC.setScreen(new ScriptAddClientValueScreen(action, script, index, header, overwrite));
+            DFScript.MC.setScreen(new ScriptAddClientValueScreen(action, script, consumer, header, overwrite));
         });
 
         addConfigValue.setClickListener((btn) -> {
-            DFScript.MC.setScreen(new ScriptAddConfigValueScreen(action, script, index, header, overwrite));
+            DFScript.MC.setScreen(new ScriptAddConfigValueScreen(action, script, consumer, header, overwrite));
         });
 
         addFunctionArgument.setClickListener((btn) -> {
-            DFScript.MC.setScreen(new ScriptAddFunctionArgValueScreen(action, script, index, header, overwrite));
+            DFScript.MC.setScreen(new ScriptAddFunctionArgValueScreen(action, script, consumer, header, overwrite));
         });
 
         addTrue.setClickListener((btn) -> {
-            if(overwrite != null) action.getArguments().remove(index);
-            action.getArguments().add(index, new ScriptBoolArgument(true));
+            consumer.accept(new ScriptBoolArgument(true));
             close();
         });
 
         addFalse.setClickListener((btn) -> {
-            if(overwrite != null) action.getArguments().remove(index);
-            action.getArguments().add(index, new ScriptBoolArgument(false));
+            consumer.accept(new ScriptBoolArgument(false));
             close();
         });
 

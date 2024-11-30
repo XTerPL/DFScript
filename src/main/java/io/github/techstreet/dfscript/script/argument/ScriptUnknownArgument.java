@@ -35,4 +35,9 @@ public record ScriptUnknownArgument() implements ScriptArgument {
     public String getArgText() {
         return "Unknown";
     }
+
+    @Override
+    public String getOverwrite() {
+        return "~";
+    }
 }

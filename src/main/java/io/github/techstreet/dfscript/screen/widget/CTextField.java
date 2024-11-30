@@ -66,7 +66,6 @@ public class CTextField implements CWidget {
         Vector4f begin = new Vector4f(xPos - 2, yPos + 2, 1, 1);
         Vector4f end = new Vector4f((xPos + (width * 2)) - 7, (yPos + (height * 2)), 1, 1);
 
-        int guiScale = (int) DFScript.MC.getWindow().getScaleFactor();
         context.enableScissor(
                 (int) begin.x(),
                 (int) begin.y(),

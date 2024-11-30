@@ -63,4 +63,9 @@ public record ScriptNumberArgument(double value) implements ScriptArgument {
         }
         return text;
     }
+
+    @Override
+    public String getOverwrite() {
+        return String.valueOf(value());
+    }
 }
