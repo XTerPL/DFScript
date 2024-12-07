@@ -30,6 +30,7 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundManager;
+import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
@@ -792,6 +793,229 @@ public enum ScriptActionType {
                         "Item to modify" : "Result").asItem();
 
                 item.remove(DataComponentTypes.CUSTOM_DATA);
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    GET_ITEM_NAME(builder -> builder.name("Get Item Name")
+            .description("Get an item's name or custom name.")
+            .icon(Items.NAME_TAG)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .tag(ItemUtil.itemNameType)
+            .tag(ComponentUtil.componentMode)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                ComponentType<Text> comp = ItemUtil.getItemNameComponent(ctx.tagValue("Name Type"));
+
+                if(item.getComponents().contains(comp)) {
+                    ctx.setVariable("Result", ScriptValueItem.valueFromNbt(
+                            item.get(DataComponentTypes.CUSTOM_DATA).copyNbt()
+                    ));
+                    return;
+                }
+
+                Text name = item.get(comp);
+
+                ctx.setVariable("Result", new ScriptTextValue(
+                        ComponentUtil.toFormattedString(name, ctx.tagValue("Component Mode"))
+                ));
+            })),
+
+    SET_ITEM_NAME(builder -> builder.name("Set Item Name")
+            .description("Sets an item's name or custom name component.")
+            .icon(Items.NAME_TAG, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Name", ScriptActionArgumentType.TEXT)
+            .tag(ItemUtil.itemNameType)
+            .tag(ComponentUtil.componentMode)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                ComponentType<Text> comp = ItemUtil.getItemNameComponent(ctx.tagValue("Name Type"));
+
+                Text name = ComponentUtil.fromString(ctx.value("Name").asText(),
+                        ctx.tagValue("Component Mode"));
+
+                item.set(comp, name);
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    REMOVE_ITEM_NAME(builder -> builder.name("Remove Custom Name")
+            .description("Removes an item's custom name component.")
+            .icon(Items.NAME_TAG, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                item.remove(DataComponentTypes.CUSTOM_NAME);
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    GET_ITEM_LORE(builder -> builder.name("Get Item Lore")
+            .description("Get an item's lore.")
+            .icon(Items.BOOK)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .tag(ComponentUtil.componentMode)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                List<Text> lines = List.of();
+
+                if(item.contains(DataComponentTypes.LORE)) {
+                    LoreComponent comp = item.get(DataComponentTypes.LORE);
+
+                    assert comp != null;
+                    lines = comp.lines();
+                }
+
+                List<ScriptValue> result = new ArrayList<>();
+
+                for(Text line : lines) {
+                    String formatted = ComponentUtil.toFormattedString(line, ctx.tagValue("Component Mode"));
+
+                    result.add(new ScriptTextValue(formatted));
+                }
+
+                ctx.setVariable("Result", new ScriptListValue(result));
+            })),
+
+    GET_ITEM_LORE_LINE(builder -> builder.name("Get Item Lore Line")
+            .description("Get a specific line of an item's lore.")
+            .icon(Items.STRING)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .arg("Index", ScriptActionArgumentType.NUMBER)
+            .tag(ComponentUtil.componentMode)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+                int index = (int) ctx.value("Index").asNumber() - 1;
+
+                List<Text> lines = List.of();
+
+                if(item.contains(DataComponentTypes.LORE)) {
+                    LoreComponent comp = item.get(DataComponentTypes.LORE);
+
+                    assert comp != null;
+                    lines = comp.lines();
+                }
+
+                if (index < 0 || index >= lines.size()) {
+                    ctx.setVariable("Result", new ScriptUnknownValue());
+                    return;
+                }
+
+                String formatted = ComponentUtil.toFormattedString(lines.get(index), ctx.tagValue("Component Mode"));
+
+                ctx.setVariable("Result", new ScriptTextValue(formatted));
+            })),
+
+    SET_ITEM_LORE(builder -> builder.name("Set Item Lore")
+            .description("Sets an item's lore.")
+            .icon(Items.BOOK, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Lore", ScriptActionArgumentType.LIST)
+            .tag(ComponentUtil.componentMode)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                List<Text> lines = new ArrayList<>();
+
+                for(ScriptValue val : ctx.value("Lore").asList()) {
+                    String formatted = val.asText();
+                    Text line = ComponentUtil.fromString(formatted, ctx.tagValue("Component Mode"));
+                    lines.add(line);
+                }
+
+                LoreComponent comp = new LoreComponent(lines);
+
+                item.set(DataComponentTypes.LORE, comp);
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    SET_ITEM_LORE_LINE(builder -> builder.name("Set Item Lore Line")
+            .description("Sets a line of an item's lore.")
+            .icon(Items.STRING, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Index", ScriptActionArgumentType.NUMBER)
+            .arg("Line", ScriptActionArgumentType.TEXT)
+            .tag(ComponentUtil.componentMode)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+                int index = (int) ctx.value("Index").asNumber() - 1;
+
+                List<Text> lines = new ArrayList<>();
+
+                if(item.contains(DataComponentTypes.LORE)) {
+                    LoreComponent comp = item.get(DataComponentTypes.LORE);
+
+                    assert comp != null;
+                    lines.addAll(comp.lines());
+                }
+
+                if (index < 0 || index >= lines.size()) {
+                    return;
+                }
+
+                lines.set(index, ComponentUtil.fromString(ctx.value("Line").asText(), ctx.tagValue("Component Mode")));
+
+                LoreComponent comp = new LoreComponent(lines);
+
+                item.set(DataComponentTypes.LORE, comp);
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    ADD_ITEM_LORE(builder -> builder.name("Add Item Lore")
+            .description("Appends lines to the end of an item's lore.")
+            .icon(Items.BOOKSHELF, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Lines to Add", ScriptActionArgumentType.LIST)
+            .tag(ComponentUtil.componentMode)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                List<Text> lines = new ArrayList<>();
+
+                if(item.contains(DataComponentTypes.LORE)) {
+                    LoreComponent comp = item.get(DataComponentTypes.LORE);
+
+                    assert comp != null;
+                    lines.addAll(comp.lines());
+                }
+
+                for(ScriptValue val : ctx.value("Lines to Add").asList()) {
+                    String formatted = val.asText();
+                    Text line = ComponentUtil.fromString(formatted, ctx.tagValue("Component Mode"));
+                    lines.add(line);
+                }
+
+                LoreComponent comp = new LoreComponent(lines);
+
+                item.set(DataComponentTypes.LORE, comp);
 
                 ctx.setVariable("Result", new ScriptItemValue(item));
             })),

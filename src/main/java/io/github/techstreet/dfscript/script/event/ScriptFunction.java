@@ -60,7 +60,7 @@ public class ScriptFunction extends ScriptHeader {
 
         List<Text> lore = new ArrayList<>();
 
-        if(description.isBlank()) {
+        if(!description.isBlank()) {
             for (String descriptionLine: description.split("\n")) {
                 lore.add(Text.literal(descriptionLine)
                         .fillStyle(Style.EMPTY
@@ -68,7 +68,7 @@ public class ScriptFunction extends ScriptHeader {
                                 .withItalic(false)));
             }
 
-            if(argList.size() > 0)
+            if(!argList.isEmpty())
                 lore.add(Text.literal(""));
         }
 

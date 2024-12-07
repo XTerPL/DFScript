@@ -19,7 +19,8 @@ public abstract class ScriptCondition {
     }
 
     public ScriptCondition invert() {
-        return null;
+        inverted = !inverted;
+        return this;
     }
 
     public boolean isInverted() {

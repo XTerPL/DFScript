@@ -1,5 +1,7 @@
 package io.github.techstreet.dfscript.script.values;
 
+import net.minecraft.item.ItemStack;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +41,11 @@ public class ScriptUnknownValue extends ScriptValue{
     @Override
     public boolean asBoolean() {
         return false;
+    }
+
+    @Override
+    public ItemStack asItem() {
+        return ItemStack.EMPTY.copy();
     }
 
     public int compare(ScriptValue other) {
