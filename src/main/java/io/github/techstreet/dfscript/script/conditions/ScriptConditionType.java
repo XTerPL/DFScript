@@ -18,6 +18,7 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import javax.xml.crypto.Data;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -303,6 +304,158 @@ public enum ScriptConditionType {
             .category(ScriptActionCategory.CONDITIONS)
             .arg("Value", ScriptActionArgumentType.BOOL)
             .action(ctx -> ctx.value("Value").asBoolean())),
+
+    IF_ITEM_EQUALS(builder -> builder.name("Item Equals")
+            .description("Checks if two items are equal.\n" +
+                         "Has a few extra comparison modes.")
+            .icon(Items.ITEM_FRAME)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Item to check", ScriptActionArgumentType.ITEM)
+            .arg("Item to compare to", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .tag(new ScriptActionTag("Comparison Mode",
+                    new ScriptActionTag.ScriptActionTagOption("Exactly Equals", Items.GOLD_INGOT),
+                    new ScriptActionTag.ScriptActionTagOption("Ignore Stack Size", Items.CHEST),
+                    new ScriptActionTag.ScriptActionTagOption("Ignore Stack Size and Durability", Items.DIAMOND_SWORD),
+                    new ScriptActionTag.ScriptActionTagOption("Material Only", Items.CHISELED_STONE_BRICKS)
+            ))
+            .action(ctx -> {
+                ItemStack item1 = ctx.value("Item to check").asItem();
+
+                if(!ctx.argMap().containsKey("Item to compare to")) {
+                    return item1.isEmpty();
+                }
+
+                ItemStack item2 = ctx.value("Item to compare to").asItem();
+
+                switch(ctx.tagValue("Comparison Mode")) {
+                    case "Exactly Equals" -> {
+                        return item1.equals(item2);
+                    }
+                    case "Ignore Stack Size" -> {
+                        item1.setCount(1);
+                        item2.setCount(1);
+                    }
+                    case "Ignore Stack Size and Durability" -> {
+                        item1.setCount(1);
+                        item2.setCount(1);
+
+                        if(item1.contains(DataComponentTypes.DAMAGE)) {
+                            item1.set(DataComponentTypes.DAMAGE, 0);
+                        }
+                        if(item2.contains(DataComponentTypes.DAMAGE)) {
+                            item1.set(DataComponentTypes.DAMAGE, 0);
+                        }
+                    }
+                    case "Material Only" -> {
+                        return item1.isOf(item2.getItem());
+                    }
+                }
+
+                return item1.equals(item2);
+            })),
+
+    IF_ITEM_HAS_CUSTOM_DATA(builder -> builder.name("Item Has Custom Data")
+            .description("Checks if an item has custom data.")
+            .icon(Items.CHEST_MINECART)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Item to check", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item to check").asItem();
+
+                return item.contains(DataComponentTypes.CUSTOM_DATA);
+            })),
+
+    IF_ITEM_HAS_CUSTOM_NAME(builder -> builder.name("Item Has Custom Name")
+            .description("Checks if an item has a custom name.")
+            .icon(Items.NAME_TAG)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Item to check", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item to check").asItem();
+
+                return item.contains(DataComponentTypes.CUSTOM_NAME);
+            })),
+
+    IF_ITEM_HAS_LORE(builder -> builder.name("Item Has Lore")
+            .description("Checks if an item has lore.")
+            .icon(Items.NAME_TAG)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Item to check", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item to check").asItem();
+
+                return !item.get(DataComponentTypes.LORE).lines().isEmpty();
+            })),
+
+    IF_ITEM_HAS_DURABILITY(builder -> builder.name("Item Has Durabiity")
+            .description("Checks if an item has durability or max durability.")
+            .icon(Items.DIAMOND_PICKAXE)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Item to check", ScriptActionArgumentType.ITEM)
+            .tag(new ScriptActionTag("Required Durability Components",
+                    new ScriptActionTag.ScriptActionTagOption("Damage", Items.DIAMOND_PICKAXE),
+                    new ScriptActionTag.ScriptActionTagOption("Maximum Damage", Items.NETHERITE_PICKAXE),
+                    new ScriptActionTag.ScriptActionTagOption("Both", Items.GOLDEN_PICKAXE)
+            ))
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item to check").asItem();
+
+                boolean damage = item.contains(DataComponentTypes.DAMAGE);
+                boolean maxDamage = item.contains(DataComponentTypes.MAX_DAMAGE);
+
+                return switch(ctx.tagValue("Required Durability Components")) {
+                    case "Damage" -> damage;
+                    case "Maximum Damage" -> maxDamage;
+                    case "Both" -> damage && maxDamage;
+                    default -> false;
+                };
+            })),
+
+    IF_ITEM_IS_UNBREAKABLE(builder -> builder.name("Item Is Unbreakable")
+            .description("Checks if an item is unbreakable.")
+            .icon(Items.CHIPPED_ANVIL)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Item to check", ScriptActionArgumentType.ITEM)
+            .tag(new ScriptActionTag("Required Hidden State",
+                    new ScriptActionTag.ScriptActionTagOption("None", Items.RED_DYE),
+                    new ScriptActionTag.ScriptActionTagOption("Shown", Items.GREEN_DYE),
+                    new ScriptActionTag.ScriptActionTagOption("Hidden", Items.LIGHT_BLUE_DYE)
+            ))
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item to check").asItem();
+
+                if(!item.contains(DataComponentTypes.UNBREAKABLE)) return false;
+
+                boolean shown = item.get(DataComponentTypes.UNBREAKABLE).showInTooltip();
+
+                return switch(ctx.tagValue("Required Hidden State")) {
+                    case "Shown" -> shown;
+                    case "Hidden" -> !shown;
+                    default -> true;
+                };
+            })),
+
+    IF_ITEM_CAN_BE_REPAIRED(builder -> builder.name("Item Can Be Repaired")
+            .description("Checks if an can be repaired.")
+            .icon(Items.ANVIL)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Item to check", ScriptActionArgumentType.ITEM)
+            .arg("Item to check against", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item to check").asItem();
+
+                if(!item.contains(DataComponentTypes.REPAIRABLE)) return false;
+
+                if(ctx.argMap().containsKey("Item to check against")) {
+                    ItemStack check = ctx.value("Item to check against").asItem();
+
+                    if(!item.get(DataComponentTypes.REPAIRABLE).matches(check)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })),
 
     TRUE(builder -> builder.name("True")
             .description("Always executes.\nLiterally the only reason for this is so the\nlegacy deserializer code doesn't have to discard ELSEs\nthat aren't tied to a CONDITION...")

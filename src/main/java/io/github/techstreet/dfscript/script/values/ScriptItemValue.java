@@ -41,7 +41,7 @@ public class ScriptItemValue extends ScriptValue {
 
     @Override
     public String asText() {
-        return asItem().getName().getString();
+        return asItem().getItem().toString();
     }
 
     @Override

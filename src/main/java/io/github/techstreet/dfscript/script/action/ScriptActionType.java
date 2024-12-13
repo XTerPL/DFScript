@@ -34,13 +34,18 @@ import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.component.type.RepairableComponent;
+import net.minecraft.component.type.UnbreakableComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.packet.s2c.play.CommandTreeS2CPacket;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
@@ -1016,6 +1021,288 @@ public enum ScriptActionType {
                 LoreComponent comp = new LoreComponent(lines);
 
                 item.set(DataComponentTypes.LORE, comp);
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    GET_ITEM_DURABILITY(builder -> builder.name("Get Item Durability")
+            .description("""
+                    Gets an item's durability.
+                    Both durability and max durability needs to be set
+                    for anything other than 'Damage' durability type to work""")
+            .icon(Items.DIAMOND_PICKAXE)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .tag(ItemUtil.durabilityType)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                Optional<Double> durability = ItemUtil.getDurability(item, ctx.tagValue("Durability Type"));
+
+                if(durability.isPresent()) {
+                    ctx.setVariable("Result", new ScriptNumberValue(durability.get()));
+                    return;
+                }
+
+                ctx.setVariable("Result", new ScriptUnknownValue());
+            })),
+
+    SET_ITEM_DURABILITY(builder -> builder.name("Set Item Durability")
+            .description("""
+                    Gets an item's durability.
+                    Max durability needs to be set for anything
+                    other than 'Damage' durability type to work""")
+            .icon(Items.DIAMOND_PICKAXE, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Durability", ScriptActionArgumentType.NUMBER)
+            .tag(ItemUtil.durabilityType)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                ItemUtil.setDurability(item, ctx.value("Durability").asNumber(),
+                                       ctx.tagValue("Durability Type"));
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    GET_ITEM_MAX_DURABILITY(builder -> builder.name("Get Item Max Durability")
+            .description("Gets an item's maximum durability.")
+            .icon(Items.NETHERITE_PICKAXE)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                if(item.contains(DataComponentTypes.MAX_DAMAGE)) {
+                    ctx.setVariable("Result", new ScriptNumberValue(item.get(DataComponentTypes.MAX_DAMAGE)));
+                    return;
+                }
+
+                ctx.setVariable("Result", new ScriptUnknownValue());
+            })),
+
+    SET_ITEM_MAX_DURABILITY(builder -> builder.name("Set Item Max Durability")
+            .description("""
+                    Sets an item's durability.
+                    Max durability needs to be already set for anything
+                    other than 'Damage' durability type to work.
+                    Does not set an item's damage component
+                    if the item did not have one already.""")
+            .icon(Items.NETHERITE_PICKAXE, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Maximum Durability", ScriptActionArgumentType.NUMBER)
+            .tag(ItemUtil.keptDurabilityType)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                Optional<Double> oldDura = ItemUtil.getDurability(item, ctx.tagValue("Kept Durability Type"));
+
+                item.set(DataComponentTypes.MAX_DAMAGE, (int) ctx.value("Maximum Durability").asNumber());
+
+                oldDura.ifPresent(aDouble -> ItemUtil.setDurability(item,
+                        aDouble, ctx.tagValue("Kept Durability Type")));
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    REMOVE_ITEM_DURABILITY(builder -> builder.name("Remove Item Durability")
+            .description("Removes an item's durability components.")
+            .icon(Items.GOLDEN_PICKAXE, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .tag(new ScriptActionTag("Durability Components to Remove",
+                    new ScriptActionTag.ScriptActionTagOption("Damage", Items.DIAMOND_PICKAXE),
+                    new ScriptActionTag.ScriptActionTagOption("Maximum Damage", Items.NETHERITE_PICKAXE),
+                    new ScriptActionTag.ScriptActionTagOption("Both", Items.GOLDEN_PICKAXE)
+            ))
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                String tagVal = ctx.tagValue("Durability Components to Remove");
+
+                if(!tagVal.equals("Maximum Damage")) item.remove(DataComponentTypes.DAMAGE);
+                if(!tagVal.equals("Damage")) item.remove(DataComponentTypes.MAX_DAMAGE);
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    SET_ITEM_BREAKABILITY(builder -> builder.name("Set Item Breakability")
+            .description("Sets whether an item is unbreakable and\n" +
+                    "whether the 'Unbreakable' text is hidden.")
+            .icon(Items.CHIPPED_ANVIL, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .tag(new ScriptActionTag("Breakability",
+                    new ScriptActionTag.ScriptActionTagOption("Breakable", Items.RED_DYE),
+                    new ScriptActionTag.ScriptActionTagOption("Unbreakable (Shown)", Items.LIME_DYE),
+                    new ScriptActionTag.ScriptActionTagOption("Unbreakable (Hidden)", Items.LIGHT_BLUE_DYE)
+            ))
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                switch(ctx.tagValue("Breakability")) {
+                    case "Breakable" ->
+                            item.remove(DataComponentTypes.UNBREAKABLE);
+                    case "Unbreakable (Shown)" ->
+                            item.set(DataComponentTypes.UNBREAKABLE, new UnbreakableComponent(true));
+                    case "Unbreakable (Hidden)" ->
+                            item.set(DataComponentTypes.UNBREAKABLE, new UnbreakableComponent(false));
+                }
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    GET_ITEM_REPAIRABILTY_ITEM_TYPES(builder -> builder.name("Get Item Repairability Item Types")
+            .description("""
+                    Gets a list of item types or an item tag
+                    that's used to repair an item.
+                    Returns a text value for an item tag.
+                    Returns a list of text values for a list of item types.""")
+            .icon(Items.ANVIL)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                if(!item.contains(DataComponentTypes.REPAIRABLE)) {
+                    ctx.setVariable("Result", new ScriptUnknownValue());
+                    return;
+                }
+
+                RepairableComponent comp = item.get(DataComponentTypes.REPAIRABLE);
+
+                Optional<TagKey<Item>> key = comp.items().getTagKey();
+
+                if(key.isPresent()) {
+                    ctx.setVariable("Result", new ScriptTextValue(key.get().id().toString()));
+                    return;
+                }
+
+                List<ScriptValue> items = new ArrayList<>();
+
+                for(RegistryEntry<Item> entry : comp.items()) {
+                    items.add(new ScriptTextValue(entry.getIdAsString()));
+                }
+
+                ctx.setVariable("Result", new ScriptListValue(items));
+            })),
+
+    SET_ITEM_REPAIRABILITY_BY_LIST(builder -> builder.name("Set Item Repairability By List")
+            .description("Sets whether an item is repairable using a list of item types.")
+            .icon(Items.ANVIL, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Item Type List", ScriptActionArgumentType.LIST)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                ArrayList<RegistryEntry<Item>> list = new ArrayList<>();
+
+                for(ScriptValue val : ctx.value("Item Type List").asList()) {
+                    String id = val.asText();
+
+                    Identifier itemId = null;
+                    try {
+                        itemId = Identifier.of(id);
+                    }
+                    catch(Exception err) {
+                        err.printStackTrace();
+                        OverlayManager.getInstance().add("Incorrect identifier: " + id);
+                        return;
+                    }
+
+                    Optional<RegistryEntry.Reference<Item>> entry = Registries.ITEM.getEntry(itemId);
+
+                    if(entry.isEmpty()) {
+                        OverlayManager.getInstance().add("Unknown item: " + id);
+                        return;
+                    }
+
+                    list.add(entry.get());
+                }
+
+                item.set(DataComponentTypes.REPAIRABLE, new RepairableComponent(RegistryEntryList.of(list)));
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    SET_ITEM_REPAIRABILITY_BY_TAG(builder -> builder.name("Set Item Repairability By Tag")
+            .description("Sets whether an item is repairable using an item type tag.")
+            .icon(Items.ANVIL, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Item Type Tag", ScriptActionArgumentType.TEXT)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                String id = ctx.value("Item Type Tag").asText();
+
+                Identifier tagId;
+                try {
+                    tagId = Identifier.of(id);
+                }
+                catch(Exception err) {
+                    err.printStackTrace();
+                    OverlayManager.getInstance().add("Incorrect identifier: " + id);
+                    return;
+                }
+
+                Optional<RegistryEntryList.Named<Item>> tag =
+                    Registries.ITEM.getOptional(TagKey.of(RegistryKeys.ITEM, tagId));
+
+                if(tag.isEmpty()) {
+                    OverlayManager.getInstance().add("Unknown item tag: " + id);
+                    return;
+                }
+
+                item.set(DataComponentTypes.REPAIRABLE, new RepairableComponent(tag.get()));
+
+                ctx.setVariable("Result", new ScriptItemValue(item));
+            })),
+
+    GET_ITEM_REPAIR_COST(builder -> builder.name("Get Item Repair Cost")
+            .description("Gets an item's repair cost")
+            .icon(Items.EXPERIENCE_BOTTLE)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item", ScriptActionArgumentType.ITEM)
+            .action(ctx -> {
+                ItemStack item = ctx.value("Item").asItem();
+
+                int repairCost = item.get(DataComponentTypes.REPAIR_COST);
+
+                ctx.setVariable("Result", new ScriptNumberValue(repairCost));
+            })),
+
+    SET_ITEM_REPAIR_COST(builder -> builder.name("Set Item Repair Cost")
+            .description("Sets an item's repair cost.")
+            .icon(Items.EXPERIENCE_BOTTLE, true)
+            .category(ScriptActionCategory.ITEMS)
+            .arg("Result", ScriptActionArgumentType.VARIABLE)
+            .arg("Item to modify", ScriptActionArgumentType.ITEM, b -> b.optional(true))
+            .arg("Repair Cost", ScriptActionArgumentType.NUMBER)
+            .action(ctx -> {
+                ItemStack item = ctx.value(ctx.argMap().containsKey("Item to modify") ?
+                        "Item to modify" : "Result").asItem();
+
+                item.set(DataComponentTypes.REPAIR_COST, (int) ctx.value("Repair Cost").asNumber());
 
                 ctx.setVariable("Result", new ScriptItemValue(item));
             })),
