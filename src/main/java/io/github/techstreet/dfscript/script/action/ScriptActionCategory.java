@@ -36,6 +36,8 @@ public enum ScriptActionCategory {
     TEXTS("Texts", Items.BOOK),
     DICTIONARIES("Dictionaries", Items.ENDER_CHEST),
     ITEMS("Items", Items.ITEM_FRAME),
+    ITEM_DISPLAY("Display", Items.NAME_TAG, ITEMS),
+    ITEM_DURABILITY("Durability", Items.ANVIL, ITEMS),
 
     MENUS("Menus", Items.PAINTING),
 
@@ -55,24 +57,34 @@ public enum ScriptActionCategory {
     });
 
     private final ItemStack icon;
+    private final ScriptActionCategory parent;
 
     private Function<Script, List<ScriptActionCategoryExtra>> extras;
 
     ScriptActionCategory(String name, Item icon) {
         this.icon = new ItemStack(icon);
         this.icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
+        this.parent = null;
+    }
+
+    ScriptActionCategory(String name, Item icon, ScriptActionCategory parent) {
+        this.icon = new ItemStack(icon);
+        this.icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
+        this.parent = parent;
     }
 
     ScriptActionCategory(String name, Item icon, List<ScriptActionCategoryExtra> extras) {
         this.icon = new ItemStack(icon);
         this.icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
         this.extras = (script) -> extras;
+        this.parent = null;
     }
 
     ScriptActionCategory(String name, Item icon, Function<Script, List<ScriptActionCategoryExtra>> extras) {
         this.icon = new ItemStack(icon);
         this.icon.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name).fillStyle(Style.EMPTY.withItalic(false)));
         this.extras = extras;
+        this.parent = null;
     }
 
     public ItemStack getIcon() {
@@ -83,5 +95,9 @@ public enum ScriptActionCategory {
         if(extras == null) return List.of();
 
         return extras.apply(script);
+    }
+
+    public ScriptActionCategory getParent() {
+        return this.parent;
     }
 }

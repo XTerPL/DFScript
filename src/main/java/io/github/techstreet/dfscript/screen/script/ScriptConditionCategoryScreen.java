@@ -16,10 +16,14 @@ import java.util.function.Function;
 
 public class ScriptConditionCategoryScreen extends CScreen {
 
-    private static final int size;
-
-    static {
-        size = (int) (Math.ceil(Math.sqrt(ScriptActionCategory.values().length)) * 10)+4;
+    private static int size() {
+        int amount = 0;
+        for (ScriptActionCategory child : ScriptActionCategory.values()) {
+            if (child.getParent() == null) {
+                amount++;
+            }
+        }
+        return (int) (Math.ceil(Math.sqrt(amount))*10)+4;
     }
 
     private final Script script;
@@ -31,7 +35,8 @@ public class ScriptConditionCategoryScreen extends CScreen {
     private final Function<ScriptCondition, ScriptPart> partCreator;
 
     public ScriptConditionCategoryScreen(Script script, ScriptSnippet snippet, int insertIndex, Function<ScriptCondition, ScriptPart> partCreator) {
-        super(size, size);
+        super(size(), size());
+        int size = size();
         this.script = script;
         this.snippet = snippet;
         this.insertIndex = insertIndex;
@@ -41,6 +46,8 @@ public class ScriptConditionCategoryScreen extends CScreen {
         int y = 3;
 
         for (ScriptActionCategory category : ScriptActionCategory.values()) {
+            if(category.getParent() != null) continue;;
+
             CItem actionItem = new CItem(x, y, category.getIcon());
             widgets.add(actionItem);
 

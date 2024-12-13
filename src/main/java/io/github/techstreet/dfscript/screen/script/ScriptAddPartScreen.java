@@ -20,9 +20,11 @@ public class ScriptAddPartScreen extends CScreen {
 
     private final ScriptSnippet snippet;
     private final int insertIndex;
+    private final ScriptActionCategory category;
 
     public ScriptAddPartScreen(Script script, ScriptSnippet snippet, int insertIndex, ScriptActionCategory category) {
         super(size(category, script), size(category, script));
+        this.category = category;
         int size = size(category, script);
         this.script = script;
         this.insertIndex = insertIndex;
@@ -121,6 +123,21 @@ public class ScriptAddPartScreen extends CScreen {
                 y += 10;
             }
         }
+
+        for (ScriptActionCategory child : ScriptActionCategory.values()) {
+            if(child.getParent() != category) continue;
+
+            CItem actionItem = new CItem(x, y, child.getIcon());
+            widgets.add(actionItem);
+
+            actionItem.setClickListener(btn -> DFScript.MC.setScreen(new ScriptAddPartScreen(script, snippet, insertIndex, child)));
+
+            x += 10;
+            if (x >= size-10) {
+                x = 3;
+                y += 10;
+            }
+        }
     }
 
     private static int size(ScriptActionCategory category, Script script) {
@@ -141,11 +158,21 @@ public class ScriptAddPartScreen extends CScreen {
                 amount++;
             }
         }
+        for (ScriptActionCategory child : ScriptActionCategory.values()) {
+            if (child.getParent() == category) {
+                amount++;
+            }
+        }
         return (int) (Math.ceil(Math.sqrt(amount))*10)+4;
     }
 
     @Override
     public void close() {
-        DFScript.MC.setScreen(new ScriptPartCategoryScreen(script, snippet, insertIndex));
+        if(category.getParent() == null) {
+            DFScript.MC.setScreen(new ScriptPartCategoryScreen(script, snippet, insertIndex));
+        }
+        else {
+            DFScript.MC.setScreen(new ScriptAddPartScreen(script, snippet, insertIndex, category.getParent()));
+        }
     }
 }

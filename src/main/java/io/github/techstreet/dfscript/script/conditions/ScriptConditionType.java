@@ -368,7 +368,7 @@ public enum ScriptConditionType {
     IF_ITEM_HAS_CUSTOM_NAME(builder -> builder.name("Item Has Custom Name")
             .description("Checks if an item has a custom name.")
             .icon(Items.NAME_TAG)
-            .category(ScriptActionCategory.ITEMS)
+            .category(ScriptActionCategory.ITEM_DISPLAY)
             .arg("Item to check", ScriptActionArgumentType.ITEM)
             .action(ctx -> {
                 ItemStack item = ctx.value("Item to check").asItem();
@@ -378,8 +378,8 @@ public enum ScriptConditionType {
 
     IF_ITEM_HAS_LORE(builder -> builder.name("Item Has Lore")
             .description("Checks if an item has lore.")
-            .icon(Items.NAME_TAG)
-            .category(ScriptActionCategory.ITEMS)
+            .icon(Items.BOOK)
+            .category(ScriptActionCategory.ITEM_DISPLAY)
             .arg("Item to check", ScriptActionArgumentType.ITEM)
             .action(ctx -> {
                 ItemStack item = ctx.value("Item to check").asItem();
@@ -390,7 +390,7 @@ public enum ScriptConditionType {
     IF_ITEM_HAS_DURABILITY(builder -> builder.name("Item Has Durabiity")
             .description("Checks if an item has durability or max durability.")
             .icon(Items.DIAMOND_PICKAXE)
-            .category(ScriptActionCategory.ITEMS)
+            .category(ScriptActionCategory.ITEM_DURABILITY)
             .arg("Item to check", ScriptActionArgumentType.ITEM)
             .tag(new ScriptActionTag("Required Durability Components",
                     new ScriptActionTag.ScriptActionTagOption("Damage", Items.DIAMOND_PICKAXE),
@@ -414,7 +414,7 @@ public enum ScriptConditionType {
     IF_ITEM_IS_UNBREAKABLE(builder -> builder.name("Item Is Unbreakable")
             .description("Checks if an item is unbreakable.")
             .icon(Items.CHIPPED_ANVIL)
-            .category(ScriptActionCategory.ITEMS)
+            .category(ScriptActionCategory.ITEM_DURABILITY)
             .arg("Item to check", ScriptActionArgumentType.ITEM)
             .tag(new ScriptActionTag("Required Hidden State",
                     new ScriptActionTag.ScriptActionTagOption("None", Items.RED_DYE),
@@ -438,7 +438,7 @@ public enum ScriptConditionType {
     IF_ITEM_CAN_BE_REPAIRED(builder -> builder.name("Item Can Be Repaired")
             .description("Checks if an can be repaired.")
             .icon(Items.ANVIL)
-            .category(ScriptActionCategory.ITEMS)
+            .category(ScriptActionCategory.ITEM_DURABILITY)
             .arg("Item to check", ScriptActionArgumentType.ITEM)
             .arg("Item to check against", ScriptActionArgumentType.ITEM, b -> b.optional(true))
             .action(ctx -> {

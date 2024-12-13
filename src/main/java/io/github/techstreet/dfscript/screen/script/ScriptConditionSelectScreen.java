@@ -19,10 +19,13 @@ public class ScriptConditionSelectScreen extends CScreen {
 
     private final int insertIndex;
 
+    private final ScriptActionCategory category;
+
     private final Function<ScriptCondition, ScriptPart> partCreator;
 
     public ScriptConditionSelectScreen(Script script, ScriptSnippet snippet, int insertIndex, Function<ScriptCondition, ScriptPart> partCreator, ScriptActionCategory category) {
         super(size(category), size(category));
+        this.category = category;
         int size = size(category);
         this.script = script;
         this.partCreator = partCreator;
@@ -54,6 +57,21 @@ public class ScriptConditionSelectScreen extends CScreen {
                 y += 10;
             }
         }
+
+        for (ScriptActionCategory child : ScriptActionCategory.values()) {
+            if (child.getParent() != category) continue;
+
+            CItem actionItem = new CItem(x, y, child.getIcon());
+            widgets.add(actionItem);
+
+            actionItem.setClickListener(btn -> DFScript.MC.setScreen(new ScriptConditionSelectScreen(script, snippet, insertIndex, partCreator, child)));
+
+            x += 10;
+            if (x >= size-10) {
+                x = 3;
+                y += 10;
+            }
+        }
     }
 
     private static int size(ScriptActionCategory category) {
@@ -63,11 +81,21 @@ public class ScriptConditionSelectScreen extends CScreen {
                 amount++;
             }
         }
+        for (ScriptActionCategory child : ScriptActionCategory.values()) {
+            if (child.getParent() == category) {
+                amount++;
+            }
+        }
         return (int) (Math.ceil(Math.sqrt(amount))*10)+4;
     }
 
     @Override
     public void close() {
-        DFScript.MC.setScreen(new ScriptConditionCategoryScreen(script, snippet, insertIndex, partCreator));
+        if(category.getParent() == null) {
+            DFScript.MC.setScreen(new ScriptConditionCategoryScreen(script, snippet, insertIndex, partCreator));
+        }
+        else {
+            DFScript.MC.setScreen(new ScriptConditionSelectScreen(script, snippet, insertIndex, partCreator, category.getParent()));
+        }
     }
 }

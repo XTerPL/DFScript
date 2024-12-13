@@ -6,25 +6,35 @@ import io.github.techstreet.dfscript.screen.widget.CItem;
 import io.github.techstreet.dfscript.script.Script;
 import io.github.techstreet.dfscript.script.ScriptSnippet;
 import io.github.techstreet.dfscript.script.action.ScriptActionCategory;
+import io.github.techstreet.dfscript.script.action.ScriptActionType;
+import io.github.techstreet.dfscript.script.conditions.ScriptConditionType;
+import io.github.techstreet.dfscript.script.repetitions.ScriptRepetitionType;
 
 public class ScriptPartCategoryScreen extends CScreen {
 
-    private static final int size;
-
-    static {
-        size = (int) (Math.ceil(Math.sqrt(ScriptActionCategory.values().length)) * 10)+4;
+    private static int size() {
+        int amount = 0;
+        for (ScriptActionCategory child : ScriptActionCategory.values()) {
+            if (child.getParent() == null) {
+                amount++;
+            }
+        }
+        return (int) (Math.ceil(Math.sqrt(amount))*10)+4;
     }
 
     private final Script script;
 
     public ScriptPartCategoryScreen(Script script, ScriptSnippet snippet, int insertIndex) {
-        super(size, size);
+        super(size(), size());
+        int size = size();
         this.script = script;
 
         int x = 3;
         int y = 3;
 
         for (ScriptActionCategory category : ScriptActionCategory.values()) {
+            if(category.getParent() != null) continue;
+
             CItem actionItem = new CItem(x, y, category.getIcon());
             widgets.add(actionItem);
 
